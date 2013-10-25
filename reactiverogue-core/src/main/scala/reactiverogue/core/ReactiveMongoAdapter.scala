@@ -275,9 +275,7 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
         //        queryClause.maxScan.foreach(cursor addSpecial("$maxScan", _))
         //        queryClause.comment.foreach(cursor addSpecial("$comment", _))
         //        hnt.foreach(cursor hint _)
-        val ret = f(cursor)
-        cursor.close()
-        ret
+        f(cursor)
       } catch {
         case e: Exception =>
           throw new RogueException("Mongo query on %s [%s] failed".format(

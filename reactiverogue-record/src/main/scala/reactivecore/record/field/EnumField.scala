@@ -17,20 +17,11 @@
 package reactiverogue.record
 package field
 
-import net.liftweb.json._
 import reactivemongo.bson._
 
 trait EnumTypedField[EnumType <: Enumeration] extends BsonField[EnumType#Value] {
   protected val enum: EnumType
   protected val valueManifest: Manifest[EnumType#Value]
-
-  override def asJValue: JValue = valueOpt.map(v => JInt(v.id)).getOrElse(JNothing)
-
-  override def setFromJValue(jvalue: JValue): Option[EnumType#Value] = jvalue match {
-    case JNothing | JNull => setOption(None)
-    case JInt(v) => setOption(enum.values.find(_.id == v))
-    case other => setOption(None)
-  }
 
   def asBSONValue: BSONValue =
     valueOpt.map(v => BSONInteger(v.id)).getOrElse(BSONUndefined)

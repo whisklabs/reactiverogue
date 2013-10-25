@@ -3,13 +3,12 @@ import sbt._
 object Dependencies {
   
   object V {
-    val Lift = "2.5.1"
     val Rogue = "2.2.0"
   }
 
-  val liftJson = "net.liftweb" %% "lift-json" % V.Lift
-  
-  val reactiveMongo = "org.reactivemongo" %% "reactivemongo" % "0.9"
+  val playJson = "com.typesafe.play" %% "play-json" % "2.2.0"
+  val playReactiveMongo = "org.reactivemongo" %% "play2-reactivemongo" % "0.10.0-SNAPSHOT"
+  val reactiveMongo = "org.reactivemongo" %% "reactivemongo" % "0.10.0-SNAPSHOT"
   
   val rogueField = "com.foursquare" %% "rogue-field" % V.Rogue intransitive()
   val rogueIndex = "com.foursquare" %% "rogue-index" % V.Rogue intransitive()
@@ -22,10 +21,13 @@ object Dependencies {
   val specs2 = "org.specs2" %% "specs2" % "1.12.3"
   
   val mongoDependencies =
-    Seq(reactiveMongo, jodaTime, jodaConvert, liftJson)
+    Seq(reactiveMongo, jodaTime, jodaConvert)
+
+  val recordDependencies =
+    Seq(playReactiveMongo, playJson)
     
   val coreDependencies =
-    Seq(rogueField, rogueIndex)
+    Seq(rogueField, rogueIndex, playReactiveMongo, playJson)
     
   val recordDslDependencies =
     Seq(junit % "test", specs2 % "test", junitInterface % "test")

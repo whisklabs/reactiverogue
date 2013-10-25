@@ -7,6 +7,7 @@ import reactiverogue.mongodb.{ MongoDB, MongoIdentifier, MongoHost, MongoAddress
 import reactiverogue.record._
 import reactiverogue.record.field._
 import reactivemongo.bson.BSONObjectID
+import JsonFormats._
 
 /////////////////////////////////////////////////
 // Sample records for testing
@@ -52,10 +53,12 @@ class Venue extends MongoRecord[Venue] with IndexedRecord[Venue] {
   object tags extends MongoListField[Venue, String](this)
   object popularity extends MongoListField[Venue, Long](this)
   object categories extends MongoListField[Venue, BSONObjectID](this)
-  object geolatlng extends MongoCaseClassField[Venue, LatLong](this) { override def name = "latlng" }
+  object geolatlng extends JsObjectField[Venue, LatLong](this) { override def name = "latlng" }
   object last_updated extends DateField(this)
   object status extends EnumNameField(this, VenueStatus) { override def name = "status" }
-  object claims extends BsonRecordListField(this, VenueClaimBson)
+  object claims extends BsonRecordListField(this, VenueClaimBson) {
+    override def zero = VenueClaimBson.createRecord
+  }
   object lastClaim extends BsonRecordField(this, VenueClaimBson)
 }
 object Venue extends Venue with MongoMetaRecord[Venue] {
@@ -126,7 +129,7 @@ object SourceBson extends SourceBson with BsonMetaRecord[SourceBson] {
 case class OneComment(timestamp: String, userid: Long, comment: String)
 class Comment extends MongoRecord[Comment] {
   def meta = Comment
-  object comments extends MongoCaseClassListField[Comment, OneComment](this)
+  object comments extends JsObjectListField[Comment, OneComment](this)
 }
 object Comment extends Comment with MongoMetaRecord[Comment] {
   override def collectionName = "comments"
@@ -186,6 +189,8 @@ class CalendarFld private () extends MongoRecord[CalendarFld] with ObjectIdPk[Ca
 
 object CalendarFld extends CalendarFld with MongoMetaRecord[CalendarFld] {
   override def mongoIdentifier = RogueTestMongo
+
+  override def collectionName = "calendar_fld"
 }
 
 class CalendarInner private () extends BsonRecord[CalendarInner] {

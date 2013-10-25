@@ -17,8 +17,6 @@
 package reactiverogue.record
 package field
 
-import java.util.Date
-import net.liftweb.json._
 import reactivemongo.bson._
 
 /*

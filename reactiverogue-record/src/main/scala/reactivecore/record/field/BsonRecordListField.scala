@@ -17,13 +17,12 @@
 package reactiverogue.record
 package field
 
-import net.liftweb.json._
 import reactivemongo.bson._
 
 /*
  * List of BsonRecords
  */
-class BsonRecordListField[OwnerType <: BsonRecord[OwnerType], SubRecordType <: BsonRecord[SubRecordType]](rec: OwnerType, valueMeta: BsonMetaRecord[SubRecordType])(implicit mf: Manifest[SubRecordType])
+abstract class BsonRecordListField[OwnerType <: BsonRecord[OwnerType], SubRecordType <: BsonRecord[SubRecordType]](rec: OwnerType, valueMeta: BsonMetaRecord[SubRecordType])(implicit mf: Manifest[SubRecordType])
     extends Field[List[SubRecordType], OwnerType] with MandatoryTypedField[List[SubRecordType]] {
 
   def owner: OwnerType = rec
@@ -31,13 +30,14 @@ class BsonRecordListField[OwnerType <: BsonRecord[OwnerType], SubRecordType <: B
   override def defaultValue: List[SubRecordType] = Nil
   override def isOptional = true
 
-  override def asJValue = JArray(value.map(_.asJValue))
-
-  override def setFromJValue(jvalue: JValue) = jvalue match {
-    case JNothing | JNull => setOption(None)
-    case JArray(arr) => setOption(Some(arr.map(valueMeta.fromJValue)))
-    case other => setOption(None)
-  }
+  def zero: SubRecordType
+  //  override def asJValue = JArray(value.map(_.asJValue))
+  //
+  //  override def setFromJValue(jvalue: JValue) = jvalue match {
+  //    case JNothing | JNull => setOption(None)
+  //    case JArray(arr) => setOption(Some(arr.map(valueMeta.fromJValue)))
+  //    case other => setOption(None)
+  //  }
 
   def asBSONValue: BSONValue =
     BSONArray(value.map(_.asBSONDocument))

@@ -9,6 +9,8 @@ lazy val mongodb =
 lazy val record =
   module("reactiverogue-record")
     .dependsOn(mongodb)
+    .settings(
+      libraryDependencies ++= recordDependencies)
 
 lazy val core =
   module("reactiverogue-core")

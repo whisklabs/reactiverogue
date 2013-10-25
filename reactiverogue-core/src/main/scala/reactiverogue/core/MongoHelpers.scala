@@ -5,8 +5,8 @@ package reactiverogue.core
 import reactivemongo.bson._
 import scala.collection.immutable.ListMap
 import collection.mutable.ListBuffer
-import reactiverogue.mongodb.JObjectParser
-import net.liftweb.json._
+import play.modules.reactivemongo.json.BSONFormats
+import play.api.libs.json.{ Json, JsObject }
 
 object MongoHelpers extends Rogue {
   case class AndCondition(clauses: List[QueryClause[_]], orCondition: Option[OrCondition]) {
@@ -87,7 +87,7 @@ object MongoHelpers extends Rogue {
 
     implicit class BSONDocumentIsJsonString(doc: BSONDocument) {
 
-      def str = compact(render(JObjectParser.serialize(doc)(DefaultFormats)))
+      def str = Json.stringify(BSONFormats.BSONDocumentFormat.writes(doc))
     }
 
     def buildSelect[M, R](select: MongoSelect[M, R]): BSONDocument = {

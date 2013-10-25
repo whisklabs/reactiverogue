@@ -62,8 +62,8 @@ trait QueryExecutor[MB] extends Rogue {
       implicit val s = serializer[M, R](query.meta, query.select)
       val cursor = adapter.queryBuilder(query, None).cursor[R]
       query.lim match {
-        case Some(limit) => cursor.toList(limit)
-        case None => cursor.toList
+        case Some(limit) => cursor.collect[List](limit)
+        case None => cursor.collect[List]()
       }
     }
   }

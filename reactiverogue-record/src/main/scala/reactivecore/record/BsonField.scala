@@ -17,14 +17,10 @@
 package reactiverogue.record
 
 import reactivemongo.bson._
-import net.liftweb.json._
-import reactiverogue.mongodb.{ JObjectParser, BSONSerializable }
+import reactiverogue.mongodb.BSONSerializable
 
 /** Base trait of bson record fields */
 trait BsonField[T] {
-
-  def formats: Formats = DefaultFormats
-  implicit lazy val _formats = formats
 
   type ValueType
 
@@ -60,14 +56,6 @@ trait BsonField[T] {
   def asBSONValue: BSONValue
 
   def setFromBSONValue(value: BSONValue): Option[T]
-
-  def asJValue: JValue = JObjectParser.serialize(asBSONValue)
-
-  def setFromJValue(jvalue: JValue): Option[T] =
-    JObjectParser.Parser.jValueToBSONValue(jvalue, _formats) match {
-      case util.Success(v) => setFromBSONValue(v)
-      case _ => setOption(None)
-    }
 
   def value: ValueType
 

@@ -17,12 +17,11 @@
 package reactiverogue.mongodb
 
 import java.util.concurrent.ConcurrentHashMap
-import scala.collection.immutable.HashSet
 import reactivemongo.api._
 import reactivemongo.api.collections.default.BSONCollection
 import concurrent.ExecutionContext.Implicits.global
-import reactivemongo.core.actors.Authenticate
 import concurrent.duration.FiniteDuration
+import reactivemongo.core.nodeset.Authenticate
 
 /*
 * A trait for identfying Mongo instances

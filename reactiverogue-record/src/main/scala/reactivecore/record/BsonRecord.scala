@@ -16,7 +16,6 @@
 
 package reactiverogue.record
 
-import net.liftweb.json._
 import reactiverogue.mongodb._
 import java.util.regex.Pattern
 import scala.collection.JavaConversions._
@@ -48,11 +47,11 @@ trait BsonRecord[MyType <: BsonRecord[MyType]] {
    */
   def setFieldsFromBSONDocument(dbo: BSONDocument): Unit = meta.setFieldsFromBSONDocument(this, dbo)
 
-  def asJValue: JValue =
-    JObjectParser.serialize(asBSONDocument)(meta.formats)
-
-  def setFieldsFromJValue(jvalue: JValue): Unit =
-    setFieldsFromBSONDocument(JObjectParser.parse(asJValue.asInstanceOf[JObject])(meta.formats))
+  //  def asJValue: JValue =
+  //    JObjectParser.serialize(asBSONDocument)(meta.formats)
+  //
+  //  def setFieldsFromJValue(jvalue: JValue): Unit =
+  //    setFieldsFromBSONDocument(JObjectParser.parse(asJValue.asInstanceOf[JObject])(meta.formats))
 
   def fieldByName(fieldName: String): Option[Field[_, MyType]] = meta.fieldByName(fieldName, this)
 
@@ -71,7 +70,7 @@ trait BsonRecord[MyType <: BsonRecord[MyType]] {
 }
 
 /** Specialized MetaRecord that deals with BsonRecords */
-trait BsonMetaRecord[BaseRecord <: BsonRecord[BaseRecord]] extends JsonFormats {
+trait BsonMetaRecord[BaseRecord <: BsonRecord[BaseRecord]] {
   self: BaseRecord =>
 
   private var fieldList: List[FieldHolder] = Nil
@@ -232,11 +231,11 @@ trait BsonMetaRecord[BaseRecord <: BsonRecord[BaseRecord]] extends JsonFormats {
     inst
   }
 
-  def fromJValue(value: JValue): BaseRecord = {
-    val inst: BaseRecord = createRecord
-    inst.setFieldsFromJValue(value)
-    inst
-  }
+  //  def fromJValue(value: JValue): BaseRecord = {
+  //    val inst: BaseRecord = createRecord
+  //    inst.setFieldsFromJValue(value)
+  //    inst
+  //  }
 
   /**
    * Populate the inst's fields with the values from a BSONDocument. Values are set

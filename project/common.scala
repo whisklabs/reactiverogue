@@ -12,4 +12,7 @@ object common {
     Project(name, file(name))
     .settings(commonSettings:_*)
     .settings(scalariformSettings:_*)
+    .settings(
+      resolvers += "Sonatype Snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/"
+    )
 }

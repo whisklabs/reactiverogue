@@ -9,6 +9,8 @@ import org.joda.time.DateTime
 import scala.util.matching.Regex
 import reactivemongo.bson._
 import reactiverogue.mongodb.BSONSerializable
+import play.api.libs.json.{ Format, Writes }
+import play.modules.reactivemongo.json.BSONFormats
 
 object CondOps extends Enumeration {
   type Op = Value
@@ -260,7 +262,7 @@ class StringQueryField[F <: String, M](override val field: Field[F, M])
   override def valueToDB(v: F) = BSONString(v)
 }
 
-class CaseClassQueryField[V, M](val field: Field[V, M]) {
+class JsonTypeQueryField[V: Writes, M](val field: Field[V, M]) {
   def unsafeField[F](name: String): SelectableDummyField[F, M] = {
     new SelectableDummyField[F, M](field.name + "." + name, field.owner)
   }
@@ -324,9 +326,9 @@ class SeqQueryField[V: BSONSerializable, M](field: Field[Seq[V], M])
   override def valueToDB(v: V): BSONValue = BSONSerializable[V].asBSONValue(v)
 }
 
-class CaseClassListQueryField[V, M](field: Field[List[V], M])
+class JsonTypeListQueryField[V: Writes, M](field: Field[List[V], M])
     extends AbstractListQueryField[V, V, M, List](field) {
-  override def valueToDB(v: V) = QueryHelpers.asBSONDocument(v)
+  override def valueToDB(v: V) = BSONFormats.BSONDocumentFormat.reads(implicitly[Writes[V]].writes(v)).get
 
   def unsafeField[F](name: String): SelectableDummyField[List[F], M] =
     new SelectableDummyField[List[F], M](field.name + "." + name, field.owner)
@@ -485,9 +487,9 @@ class ListModifyField[V: BSONSerializable, M](field: Field[List[V], M])
   override def valueToDB(v: V): BSONValue = BSONSerializable[V].asBSONValue(v)
 }
 
-class CaseClassListModifyField[V, M](field: Field[List[V], M])
+class JsonTypeListModifyField[V: Writes, M](field: Field[List[V], M])
     extends AbstractListModifyField[V, M, List](field) {
-  override def valueToDB(v: V) = QueryHelpers.asBSONDocument(v)
+  override def valueToDB(v: V) = BSONFormats.BSONDocumentFormat.reads(implicitly[Writes[V]].writes(v)).get
 }
 
 class EnumerationListModifyField[V <: Enumeration#Value, M](field: Field[List[V], M])

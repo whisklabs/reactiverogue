@@ -3,9 +3,6 @@
 package reactiverogue.core
 
 import com.foursquare.index.MongoIndex
-import net.liftweb.json.{ Extraction, Formats, Serializer, TypeInfo }
-import net.liftweb.json.JsonAST.{ JObject, JValue }
-import reactiverogue.mongodb.{ JObjectParser, ObjectIdSerializer }
 import reactivemongo.bson._
 import reactiverogue.mongodb.BSONSerializable
 import reactivemongo.core.commands.GetLastError
@@ -15,22 +12,22 @@ case class Radians(value: Double)
 case class LatLong(lat: Double, long: Double)
 
 object QueryHelpers {
-  class DBObjectSerializer extends Serializer[BSONDocument] {
-    val DBObjectClass = classOf[BSONDocument]
-
-    def deserialize(implicit formats: Formats): PartialFunction[(TypeInfo, JValue), BSONDocument] = {
-      case (TypeInfo(klass, _), json: JObject) if DBObjectClass.isAssignableFrom(klass) =>
-        JObjectParser.parse(json)
-    }
-
-    def serialize(implicit formats: Formats): PartialFunction[Any, JValue] = {
-      case x: BSONDocument =>
-        JObjectParser.serialize(x)
-    }
-  }
-
-  private implicit val formats =
-    (net.liftweb.json.DefaultFormats + new ObjectIdSerializer + new DBObjectSerializer)
+  //  class DBObjectSerializer extends Serializer[BSONDocument] {
+  //    val DBObjectClass = classOf[BSONDocument]
+  //
+  //    def deserialize(implicit formats: Formats): PartialFunction[(TypeInfo, JValue), BSONDocument] = {
+  //      case (TypeInfo(klass, _), json: JObject) if DBObjectClass.isAssignableFrom(klass) =>
+  //        JObjectParser.parse(json)
+  //    }
+  //
+  //    def serialize(implicit formats: Formats): PartialFunction[Any, JValue] = {
+  //      case x: BSONDocument =>
+  //        JObjectParser.serialize(x)
+  //    }
+  //  }
+  //
+  //  private implicit val formats =
+  //    (net.liftweb.json.DefaultFormats + new ObjectIdSerializer + new DBObjectSerializer)
 
   trait QueryLogger {
     def log(query: Query[_, _, _], instanceName: String, msg: => String, timeMillis: Long): Unit
@@ -141,9 +138,9 @@ object QueryHelpers {
       new AllQueryClause(fieldName, QueryHelpers.validatedList(vs.toSet))
   }
 
-  def asBSONDocument[T](x: T): BSONDocument = {
-    JObjectParser.parse(Extraction.decompose(x).asInstanceOf[JObject])
-  }
+  //  def asBSONDocument[T](x: T): BSONDocument = {
+  //    JObjectParser.parse(Extraction.decompose(x).asInstanceOf[JObject])
+  //  }
 
   def orConditionFromQueries(subqueries: List[Query[_, _, _]]) = {
     MongoHelpers.OrCondition(subqueries.flatMap(subquery => {

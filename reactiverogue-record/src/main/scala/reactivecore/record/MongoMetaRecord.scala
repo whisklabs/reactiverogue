@@ -16,13 +16,7 @@
 
 package reactiverogue.record
 
-import java.util.{ Calendar, UUID }
-import java.util.regex.Pattern
-import scala.collection.JavaConversions._
-import net.liftweb.json.{ Formats, JsonParser }
-import net.liftweb.json.JsonAST._
 import reactiverogue.mongodb._
-import reactiverogue.record.field._
 import reactivemongo.bson._
 import reactivemongo.core.commands.{ GetLastError, LastError }
 import concurrent.{ ExecutionContext, Future }

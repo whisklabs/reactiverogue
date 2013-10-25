@@ -1,7 +1,6 @@
 package reactiverogue.mongodb
 
 import reactivemongo.bson._
-import net.liftweb.json._
 import java.util.regex.Pattern
 import java.util.Date
 import org.joda.time.DateTime

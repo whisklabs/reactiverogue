@@ -17,10 +17,8 @@
 package reactiverogue.record
 package field
 
-import net.liftweb.json._
 import reactivemongo.bson._
 
-/** Field that contains an entire record represented as an inline object value. Inspired by JSONSubRecordField */
 class BsonRecordField[OwnerType <: BsonRecord[OwnerType], SubRecordType <: BsonRecord[SubRecordType]](rec: OwnerType, valueMeta: BsonMetaRecord[SubRecordType])(implicit subRecordType: Manifest[SubRecordType])
     extends Field[SubRecordType, OwnerType]
     with MandatoryTypedField[SubRecordType] {
@@ -37,16 +35,6 @@ class BsonRecordField[OwnerType <: BsonRecord[OwnerType], SubRecordType <: BsonR
 
   def owner = rec
   def defaultValue = valueMeta.createRecord
-
-  override def asJValue: JValue = valueOpt.map(_.asJValue).getOrElse(JNothing)
-
-  override def setFromJValue(jvalue: JValue): Option[SubRecordType] = jvalue match {
-    case JNothing | JNull => setOption(None)
-    case _ =>
-      val rec = valueMeta.createRecord
-      rec.setFieldsFromJValue(jvalue)
-      setOption(Some(rec))
-  }
 
   def asBSONValue: BSONValue =
     value.asBSONDocument

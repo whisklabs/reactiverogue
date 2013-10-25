@@ -10,11 +10,11 @@ import com.foursquare.field.{
 import com.foursquare.index.IndexBuilder
 import reactiverogue.core.MongoHelpers.{ AndCondition, MongoModify }
 import java.util.Date
-import net.liftweb.json.JsonAST.{ JArray, JInt }
 import reactiverogue.record.{ BsonRecord, MongoRecord, MongoMetaRecord, Field, MandatoryTypedField, OptionalTypedField }
 import reactiverogue.record.field._
 import reactiverogue.mongodb.BSONSerializable
 import reactivemongo.bson._
+import play.api.libs.json.{ Format, Writes }
 
 trait LiftRogue extends Rogue {
   def OrQuery[M <: MongoRecord[M], R](subqueries: Query[M, R, _]*): Query[M, R, Unordered with Unselected with Unlimited with Unskipped with HasOrClause] = {
@@ -86,7 +86,7 @@ trait LiftRogue extends Rogue {
       val field = owner.fieldByName(fieldName).getOrElse(throw new Exception("Error getting field " + fieldName + " for " + owner))
       val typedField = field.asInstanceOf[BsonRecordListField[M, B]]
       // a gross hack to get at the embedded record
-      val rec: B = typedField.setFromJValue(JArray(JInt(0) :: Nil)).get.head
+      val rec: B = typedField.zero
       new BsonRecordQueryField[M, B](f, _.asBSONDocument, rec)
     } else {
       val fieldName = f.name
@@ -98,18 +98,17 @@ trait LiftRogue extends Rogue {
   }
 
   implicit def bsonRecordListFieldToBsonRecordListQueryField[M <: BsonRecord[M], B <: BsonRecord[B]](f: BsonRecordListField[M, B]): BsonRecordListQueryField[M, B] = {
-    val rec = f.setFromJValue(JArray(JInt(0) :: Nil)).get.head // a gross hack to get at the embedded record
-    new BsonRecordListQueryField[M, B](f, rec, _.asBSONDocument)
+    new BsonRecordListQueryField[M, B](f, f.zero, _.asBSONDocument)
   }
 
   implicit def dateFieldToDateQueryField[M <: BsonRecord[M]](f: Field[java.util.Date, M]): DateQueryField[M] =
     new DateQueryField(f)
 
-  implicit def ccFieldToQueryField[M <: BsonRecord[M], F](f: MongoCaseClassField[M, F]): CaseClassQueryField[F, M] =
-    new CaseClassQueryField[F, M](f)
+  implicit def ccFieldToQueryField[M <: BsonRecord[M], F: Writes](f: JsObjectField[M, F]): JsonTypeQueryField[F, M] =
+    new JsonTypeQueryField[F, M](f)
 
-  implicit def ccListFieldToListQueryField[M <: BsonRecord[M], F](f: MongoCaseClassListField[M, F]): CaseClassListQueryField[F, M] =
-    new CaseClassListQueryField[F, M](liftField2Recordv2Field(f))
+  implicit def jsObjectieldToListQueryField[M <: BsonRecord[M], F: Format](f: JsObjectListField[M, F]): JsonTypeListQueryField[F, M] =
+    new JsonTypeListQueryField[F, M](liftField2Recordv2Field(f))
 
   implicit def doubleFieldtoNumericQueryField[M <: BsonRecord[M], F](f: Field[Double, M]): NumericQueryField[Double, M] =
     new NumericQueryField(f)
@@ -160,15 +159,14 @@ trait LiftRogue extends Rogue {
   implicit def bsonRecordListFieldToBsonRecordListModifyField[M <: BsonRecord[M], B <: BsonRecord[B]](
     f: BsonRecordListField[M, B])(
       implicit mf: Manifest[B]): BsonRecordListModifyField[M, B] = {
-    val rec = f.setFromJValue(JArray(JInt(0) :: Nil)).get.head // a gross hack to get at the embedded record
-    new BsonRecordListModifyField[M, B](f, rec, _.asBSONDocument)(mf)
+    new BsonRecordListModifyField[M, B](f, f.zero, _.asBSONDocument)(mf)
   }
 
   implicit def dateFieldToDateModifyField[M <: BsonRecord[M]](f: Field[Date, M]): DateModifyField[M] =
     new DateModifyField(f)
 
-  implicit def ccListFieldToListModifyField[M <: BsonRecord[M], V](f: MongoCaseClassListField[M, V]): CaseClassListModifyField[V, M] =
-    new CaseClassListModifyField[V, M](liftField2Recordv2Field(f))
+  implicit def jsObjectListFieldToListModifyField[M <: BsonRecord[M], V: Format](f: JsObjectListField[M, V]): JsonTypeListModifyField[V, M] =
+    new JsonTypeListModifyField[V, M](liftField2Recordv2Field(f))
 
   implicit def doubleFieldToNumericModifyField[M <: BsonRecord[M]](f: Field[Double, M]): NumericModifyField[Double, M] =
     new NumericModifyField(f)
