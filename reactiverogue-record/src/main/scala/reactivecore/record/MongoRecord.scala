@@ -40,7 +40,7 @@ trait MongoRecord[MyType <: MongoRecord[MyType]] extends BsonRecord[MyType] with
    * @param safe - if true will use GetLastError SAFE else NORMAL
    */
   def save(safe: Boolean)(implicit ec: ExecutionContext): Future[LastError] = {
-    save(if (safe) GetLastError(awaitJournalCommit = true) else GetLastError())
+    save(if (safe) GetLastError(j = true) else GetLastError())
   }
 
   /**
