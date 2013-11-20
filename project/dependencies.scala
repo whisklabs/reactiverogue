@@ -6,7 +6,7 @@ object Dependencies {
     val Rogue = "2.2.0"
   }
 
-  val playJson = "com.typesafe.play" %% "play-json" % "2.2.0"
+  val playJson = "com.typesafe.play" %% "play-json" % "2.2.1"
   val playReactiveMongo = "org.reactivemongo" %% "play2-reactivemongo" % "0.10.0-SNAPSHOT"
   val reactiveMongo = "org.reactivemongo" %% "reactivemongo" % "0.10.0-SNAPSHOT"
   
