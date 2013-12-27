@@ -7,8 +7,8 @@ object Dependencies {
   }
 
   val playJson = "com.typesafe.play" %% "play-json" % "2.2.1"
-  val playReactiveMongo = "org.reactivemongo" %% "play2-reactivemongo" % "0.10.0-SNAPSHOT"
-  val reactiveMongo = "org.reactivemongo" %% "reactivemongo" % "0.10.0-SNAPSHOT"
+  val playReactiveMongo = "org.reactivemongo" %% "play2-reactivemongo" % "0.10.0"
+  val reactiveMongo = "org.reactivemongo" %% "reactivemongo" % "0.10.0"
   
   val rogueField = "com.foursquare" %% "rogue-field" % V.Rogue intransitive()
   val rogueIndex = "com.foursquare" %% "rogue-index" % V.Rogue intransitive()
