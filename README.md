@@ -10,6 +10,6 @@ Consider [QueryTest.scala](https://github.com/whiskteam/reactiverogue/blob/maste
 
     resolvers += "Whisk Snapshots" at "http://whiskteam.github.io/mvn-repo/snapshots/"
     
-    libraryDependencies += "com.whisk" %% "reactiverogue" % "0.1.0-f47c8e8"
+    libraryDependencies += "com.whisk" %% "reactiverogue" % "0.1.0-e8cb7ca"
 
     
