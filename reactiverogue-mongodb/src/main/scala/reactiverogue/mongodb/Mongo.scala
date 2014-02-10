@@ -22,6 +22,7 @@ import reactivemongo.api.collections.default.BSONCollection
 import concurrent.ExecutionContext.Implicits.global
 import concurrent.duration.FiniteDuration
 import reactivemongo.core.nodeset.Authenticate
+import scala.util.{ Failure, Success }
 
 /*
 * A trait for identfying Mongo instances
@@ -48,6 +49,20 @@ case object DefaultMongoIdentifier extends MongoIdentifier {
 */
 case class MongoAddress(host: MongoHostBase, name: String) {
   def db: DefaultDB = host.connection(name)
+}
+
+object MongoAddress {
+
+  def apply(uri: String): MongoAddress = {
+    MongoConnection.parseURI(uri) match {
+      case Success(MongoConnection.ParsedURI(hosts, Some(db), auth)) =>
+        MongoAddress(MongoHost(hosts.map(h => h._1 + ":" + h._2), auth.toList), db)
+      case Success(MongoConnection.ParsedURI(_, None, _)) =>
+        throw new Exception(s"Missing database name in mongodb.uri '$uri'")
+      case Failure(e) =>
+        throw new Exception(s"Invalid mongodb.uri '$uri'")
+    }
+  }
 }
 
 /*
@@ -79,14 +94,14 @@ object MongoDB {
   /*
   * Define a Mongo db
   */
-  def defineDb(name: MongoIdentifier, address: MongoAddress) {
+  def defineDb(name: MongoIdentifier, address: MongoAddress): Unit = {
     dbs.put(name, address)
   }
 
   /*
   * Define and authenticate a Mongo db
   */
-  def defineDbAuth(name: MongoIdentifier, address: MongoAddress, username: String, password: String)(implicit timeout: FiniteDuration) {
+  def defineDbAuth(name: MongoIdentifier, address: MongoAddress, username: String, password: String)(implicit timeout: FiniteDuration): Unit = {
     address.db.authenticate(username, password)
     dbs.put(name, address)
   }
@@ -161,7 +176,7 @@ object MongoDB {
     useSession(DefaultMongoIdentifier)(f)
 
   //
-  def close {
+  def close: Unit = {
     dbs.clear
   }
 }
