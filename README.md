@@ -8,7 +8,7 @@ Consider [QueryTest.scala](https://github.com/whiskteam/reactiverogue/blob/maste
 
 ## Dependency
 
-    resolvers += "Whisk Snapshots" at "http://whiskteam.github.io/mvn-repo/snapshots/"
+    resolvers += "Whisk Snapshots" at "http://whisklabs.github.io/mvn-repo/snapshots/"
     
     libraryDependencies += "com.whisk" %% "reactiverogue-record-dsl" % "0.1.0-752261a"
 
