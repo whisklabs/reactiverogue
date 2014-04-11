@@ -8,7 +8,7 @@ object common {
 
   val commonSettings = Seq(
     organization := "com.whisk",
-    scalaVersion := "2.10.3",
+    scalaVersion := "2.10.4",
     gitHeadCommitSha := Process("git rev-parse --short HEAD").lines.head)
     
   def module(name: String) =
