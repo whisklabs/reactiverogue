@@ -24,6 +24,10 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
   import QueryHelpers._
   import MongoHelpers.MongoBuilder._
 
+  val EmptyResult =
+    LastError(ok = true, err = None, code = None, errMsg = None,
+      originalDocument = None, updated = 0, updatedExisting = false)
+
   //TODO: make it looking for async commands
   private[reactiverogue] def runCommand[M <: MB, T](description: => String,
     query: Query[M, _, _])(f: => T): T = {
@@ -107,10 +111,10 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
   def modify[M <: MB](mod: ModifyQuery[M, _],
     upsert: Boolean,
     multi: Boolean,
-    writeConcern: GetLastError)(implicit ec: ExecutionContext): Unit = {
+    writeConcern: GetLastError)(implicit ec: ExecutionContext): Future[LastError] = {
     val modClause = transformer.transformModify(mod)
     validator.validateModify(modClause)
-    if (!modClause.mod.clauses.isEmpty) {
+    if (modClause.mod.clauses.nonEmpty) {
       val q = buildCondition(modClause.query.condition)
       val m = buildModify(modClause.mod)
       lazy val description = buildModifyString(mod.query.collectionName, modClause, upsert = upsert, multi = multi)
@@ -119,6 +123,8 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
         val coll = dbCollectionFactory.getPrimaryDBCollection(modClause.query)
         coll.update(q, m, writeConcern, upsert, multi)
       }
+    } else {
+      Future.successful(EmptyResult)
     }
   }
 

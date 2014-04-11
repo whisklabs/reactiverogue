@@ -130,22 +130,22 @@ case class ExecutableQuery[MB, M <: MB, R, State](
 
 case class ExecutableModifyQuery[MB, M <: MB, State](query: ModifyQuery[M, State],
     db: QueryExecutor[MB]) {
-  def updateMulti()(implicit ec: ExecutionContext): Unit =
+  def updateMulti()(implicit ec: ExecutionContext): Future[LastError] =
     db.updateMulti(query)
 
-  def updateOne()(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Unit =
+  def updateOne()(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Future[LastError] =
     db.updateOne(query)
 
-  def upsertOne()(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Unit =
+  def upsertOne()(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Future[LastError] =
     db.upsertOne(query)
 
-  def updateMulti(writeConcern: GetLastError)(implicit ec: ExecutionContext): Unit =
+  def updateMulti(writeConcern: GetLastError)(implicit ec: ExecutionContext): Future[LastError] =
     db.updateMulti(query, writeConcern)
 
-  def updateOne(writeConcern: GetLastError)(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Unit =
+  def updateOne(writeConcern: GetLastError)(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Future[LastError] =
     db.updateOne(query, writeConcern)
 
-  def upsertOne(writeConcern: GetLastError)(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Unit =
+  def upsertOne(writeConcern: GetLastError)(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Future[LastError] =
     db.upsertOne(query, writeConcern)
 }
 

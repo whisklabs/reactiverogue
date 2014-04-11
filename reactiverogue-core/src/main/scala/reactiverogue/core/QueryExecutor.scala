@@ -23,6 +23,10 @@ trait QueryExecutor[MB] extends Rogue {
 
   def defaultWriteConcern: GetLastError
 
+  val EmptyResult =
+    LastError(ok = true, err = None, code = None, errMsg = None,
+      originalDocument = None, updated = 0, updatedExisting = false)
+
   protected def serializer[M <: MB, R](
     meta: M,
     select: Option[MongoSelect[M, R]]): RogueSerializer[R]
@@ -131,9 +135,9 @@ trait QueryExecutor[MB] extends Rogue {
 
   def updateOne[M <: MB, State](
     query: ModifyQuery[M, State],
-    writeConcern: GetLastError = defaultWriteConcern)(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Unit = {
+    writeConcern: GetLastError = defaultWriteConcern)(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Future[LastError] = {
     if (optimizer.isEmptyQuery(query)) {
-      ()
+      Future.successful(EmptyResult)
     } else {
       adapter.modify(query, upsert = false, multi = false, writeConcern = writeConcern)
     }
@@ -141,9 +145,9 @@ trait QueryExecutor[MB] extends Rogue {
 
   def upsertOne[M <: MB, State](
     query: ModifyQuery[M, State],
-    writeConcern: GetLastError = defaultWriteConcern)(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Unit = {
+    writeConcern: GetLastError = defaultWriteConcern)(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Future[LastError] = {
     if (optimizer.isEmptyQuery(query)) {
-      ()
+      Future.successful(EmptyResult)
     } else {
       adapter.modify(query, upsert = true, multi = false, writeConcern = writeConcern)
     }
@@ -151,9 +155,9 @@ trait QueryExecutor[MB] extends Rogue {
 
   def updateMulti[M <: MB, State](
     query: ModifyQuery[M, State],
-    writeConcern: GetLastError = defaultWriteConcern)(implicit ec: ExecutionContext): Unit = {
+    writeConcern: GetLastError = defaultWriteConcern)(implicit ec: ExecutionContext): Future[LastError] = {
     if (optimizer.isEmptyQuery(query)) {
-      ()
+      Future.successful(EmptyResult)
     } else {
       adapter.modify(query, upsert = false, multi = true, writeConcern = writeConcern)
     }
