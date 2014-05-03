@@ -6,7 +6,7 @@ import reactivemongo.bson._
 import scala.collection.immutable.ListMap
 import collection.mutable.ListBuffer
 import play.modules.reactivemongo.json.BSONFormats
-import play.api.libs.json.{ Json, JsObject }
+import play.api.libs.json.Json
 
 object MongoHelpers extends Rogue {
   case class AndCondition(clauses: List[QueryClause[_]], orCondition: Option[OrCondition]) {
@@ -35,22 +35,19 @@ object MongoHelpers extends Rogue {
       safeClauses.groupBy(_.fieldName).toList
         .sortBy { case (fieldName, _) => -cond.clauses.indexWhere(_.fieldName == fieldName) }
         .foreach {
-          case (name, cs) => {
+          case (name, cs) =>
             // Equality clauses look like { a : 3 }
             // but all other clauses look like { a : { $op : 3 }}
             // and can be chained like { a : { $gt : 2, $lt: 6 }}.
             // So if there is any equality clause, apply it (only) to the builder;
             // otherwise, chain the clauses.
-            cs.filter(i => i.isInstanceOf[EqClause[_, _]] || i.isInstanceOf[RegexQueryClause[_]]).headOption match {
+            cs.find({ i => i.isInstanceOf[EqClause[_, _]] || i.isInstanceOf[RegexQueryClause[_]] }) match {
               case Some(eqClause) => eqClause.extend(buffer, signature)
-              case None => {
+              case None =>
                 val nameBuff = ListBuffer.empty[(String, BSONValue)]
-
                 cs.foreach(_.extend(nameBuff, signature))
                 buffer += name -> BSONDocument(nameBuff)
-              }
             }
-          }
         }
 
       // Raw clauses
@@ -123,14 +120,14 @@ object MongoHelpers extends Rogue {
       query.maxScan.foreach(m => sb.append("._addSpecial(\"$maxScan\", %d)" format m))
       query.comment.foreach(c => sb.append("._addSpecial(\"$comment\", \"%s\")" format c))
       query.hint.foreach(h => sb.append(".hint(%s)" format buildHint(h).str))
-      sb.toString
+      sb.toString()
     }
 
     def buildConditionString[R, M](operation: String, collectionName: String, query: Query[M, R, _]): String = {
       val sb = new StringBuilder("db.%s.%s(".format(collectionName, operation))
       sb.append(buildCondition(query.condition, signature = false).str)
       sb.append(")")
-      sb.toString
+      sb.toString()
     }
 
     def buildModifyString[R, M](collectionName: String, modify: ModifyQuery[M, _],
@@ -155,7 +152,7 @@ object MongoHelpers extends Rogue {
       query.select.foreach(s => sb.append(",fields:" + buildSelect(s).str))
       sb.append(",upsert:" + upsert)
       sb.append("})")
-      sb.toString
+      sb.toString()
     }
 
     def buildSignature[R, M](collectionName: String, query: Query[M, R, _]): String = {
@@ -163,7 +160,7 @@ object MongoHelpers extends Rogue {
       sb.append(buildCondition(query.condition, signature = true).str)
       sb.append(")")
       query.order.foreach(o => sb.append(".sort(%s)" format buildOrder(o).str))
-      sb.toString
+      sb.toString()
     }
   }
 }

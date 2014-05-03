@@ -219,6 +219,7 @@ case class Query[M, R, +State](
     ev2: ShardingOk[M, State]): ModifyQuery[M, State] = {
     ModifyQuery(this, MongoModify(Nil)).modify(clause)
   }
+
   def modifyOpt[V](opt: Option[V])(clause: (M, V) => ModifyClause)(implicit ev1: Required[State, Unselected with Unlimited with Unskipped],
     ev2: ShardingOk[M, State]): ModifyQuery[M, State] = {
     ModifyQuery(this, MongoModify(Nil)).modifyOpt(opt)(clause)
@@ -501,5 +502,6 @@ case class FindAndModifyQuery[M, R](
   def andOpt[V](opt: Option[V])(clause: (M, V) => ModifyClause) =
     addClauseOpt(opt)(clause)
 
-  override def toString: String = MongoBuilder.buildFindAndModifyString(query.collectionName, this, false, false, false)
+  override def toString: String =
+    MongoBuilder.buildFindAndModifyString(query.collectionName, this, returnNew = false, upsert = false, remove = false)
 }

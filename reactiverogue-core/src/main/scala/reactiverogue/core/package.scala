@@ -2,8 +2,6 @@
 
 package reactiverogue
 
-import reactiverogue.mongodb.BSONSerializable
-
 package object core {
 
   type InitialState = Unordered with Unselected with Unlimited with Unskipped with HasNoOrClause with ShardKeyNotSpecified

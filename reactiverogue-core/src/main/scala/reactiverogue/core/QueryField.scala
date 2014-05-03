@@ -80,7 +80,6 @@ object MongoType extends Enumeration {
  *
  * @tparam F the underlying type of the field
  * @tparam V the type of values allowed to be compared to the field
- * @tparam DB the type V is converted into in the BSON representation of the field
  * @tparam M the type of the owner of the field
  */
 abstract class LegacyAbstractQueryField[F, V, M](val field: Field[F, M]) {
@@ -193,12 +192,12 @@ class ObjectIdQueryField[M](override val field: Field[BSONObjectID, M])
     extends NumericQueryField[BSONObjectID, M](field) {
 
   def dateToByteArray(d: DateTime): Array[Byte] = {
-    val b = new Array[Byte](12);
-    val bb = java.nio.ByteBuffer.wrap(b);
-    bb.putInt((d.getMillis() / 1000).intValue());
-    bb.putInt(0);
-    bb.putInt(0);
-    return b;
+    val b = new Array[Byte](12)
+    val bb = java.nio.ByteBuffer.wrap(b)
+    bb.putInt((d.getMillis / 1000).intValue())
+    bb.putInt(0)
+    bb.putInt(0)
+    b
   }
 
   def simpleObjectId(d: DateTime): BSONObjectID =
@@ -441,7 +440,7 @@ class MapModifyField[V: BSONSerializable, M](field: Field[Map[String, V], M])
 abstract class AbstractListModifyField[V, M, CC[X] <: Seq[X]](val field: Field[CC[V], M]) {
   def valueToDB(v: V): BSONValue
 
-  def valuesToDB(vs: Traversable[V]) = vs.map(valueToDB _)
+  def valuesToDB(vs: Traversable[V]) = vs.map(valueToDB)
 
   def setTo(vs: Traversable[V]) =
     new ModifyClause(ModOps.Set, field.name -> BSONArray(valuesToDB(vs)))

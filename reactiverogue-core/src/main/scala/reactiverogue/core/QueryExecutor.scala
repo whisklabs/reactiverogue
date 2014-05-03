@@ -2,9 +2,7 @@
 
 package reactiverogue.core
 
-import com.foursquare.field.Field
 import reactiverogue.core.MongoHelpers.{ MongoModify, MongoSelect }
-import scala.collection.mutable.ListBuffer
 import reactivemongo.core.commands.GetLastError
 import reactivemongo.bson.BSONDocument
 import scala.concurrent.{ Future, ExecutionContext }
@@ -87,18 +85,6 @@ trait QueryExecutor[MB] extends Rogue {
     } else {
       val s = serializer[M, R](query.meta, query.select)
       adapter.query(query, None)(dbo => f(s.fromBSONDocument(dbo)))
-    }
-  }
-
-  private def drainBuffer[A, B](
-    from: ListBuffer[A],
-    to: ListBuffer[B],
-    f: List[A] => List[B],
-    size: Int): Unit = {
-    // ListBuffer#length is O(1) vs ListBuffer#size is O(N) (true in 2.9.x, fixed in 2.10.x)
-    if (from.length >= size) {
-      to ++= f(from.toList)
-      from.clear
     }
   }
 

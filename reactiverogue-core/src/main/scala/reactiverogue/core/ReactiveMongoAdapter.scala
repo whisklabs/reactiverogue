@@ -8,7 +8,6 @@ import reactivemongo.bson._
 import reactivemongo.api._
 import reactivemongo.api.collections.default._
 import reactivemongo.core.commands._
-import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ Future, ExecutionContext }
 import play.api.libs.iteratee.Iteratee
 import reactivemongo.api.collections.GenericQueryBuilder
@@ -104,7 +103,7 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
 
     runCommand(description, queryClause) {
       val coll = dbCollectionFactory.getPrimaryDBCollection(query)
-      coll.remove(cnd, writeConcern, false)
+      coll.remove(cnd, writeConcern, firstMatchOnly = false)
     }
   }
 
@@ -167,12 +166,12 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
     val cnd = buildCondition(queryClause.condition)
     val ord = queryClause.order.map(buildOrder)
     val sel = queryClause.select.map(buildSelect).getOrElse(BSONDocument())
-    val hnt = queryClause.hint.map(buildHint)
+    //    val hnt = queryClause.hint.map(buildHint)
 
     val coll = dbCollectionFactory.getDBCollection(query)
     val opts = QueryOpts(skipN = queryClause.sk.getOrElse(0), batchSizeN = batchSize.getOrElse(0))
     def _qry = coll.find(cnd, sel).options(opts)
-    def qb = ord.map(_qry.sort).getOrElse(_qry)
+    def qb = ord.fold(_qry)(_qry.sort)
     qb
   }
 

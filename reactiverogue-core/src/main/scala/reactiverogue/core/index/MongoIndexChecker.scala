@@ -39,11 +39,11 @@ object MongoIndexChecker {
    * @return the list of indexes, or an empty list.
    */
   def getIndexes(query: Query[_, _, _]): Option[List[MongoIndex[_]]] = {
-    val queryMetaRecord = query.meta
-    if (queryMetaRecord.isInstanceOf[IndexedRecord[_]]) {
-      Some(queryMetaRecord.asInstanceOf[IndexedRecord[_]].mongoIndexList)
-    } else {
-      None
+    query.meta match {
+      case value: IndexedRecord[_] =>
+        Some(value.mongoIndexList)
+      case _ =>
+        None
     }
   }
 
@@ -72,7 +72,7 @@ object MongoIndexChecker {
    * @return true if the required indexes are found, false otherwise.
    */
   def validateIndexExpectations(query: Query[_, _, _], indexes: List[MongoIndex[_]]): Boolean = {
-    val baseConditions = normalizeCondition(query.condition);
+    val baseConditions = normalizeCondition(query.condition)
     val conditions = baseConditions.map(_.filter(_.expectedIndexBehavior != DocumentScan))
 
     conditions.forall(clauses => {
@@ -84,14 +84,13 @@ object MongoIndexChecker {
           IndexScan -> List(DocumentScan)
         )
         badExpectations.forall {
-          case (expectation, badActual) => {
+          case (expectation, badActual) =>
             if (clause.expectedIndexBehavior == expectation &&
               badActual.exists(_ == clause.actualIndexBehavior)) {
               signalError(query,
                 "Query is expecting %s on %s but actual behavior is %s. query = %s" format
                   (clause.expectedIndexBehavior, clause.fieldName, clause.actualIndexBehavior, query.toString))
             } else true
-          }
         }
       })
     })
@@ -158,14 +157,13 @@ object MongoIndexChecker {
       true
     } else {
       index match {
-        case Nil => {
+        case Nil =>
           // Oh no! The index is exhausted but we still have clauses to match.
           false
-        }
-        case field :: rest => {
+        case field :: rest =>
           val (matchingClauses, remainingClauses) = clauses.partition(_.fieldName == field)
           matchingClauses match {
-            case matchingClause :: _ => {
+            case matchingClause :: _ =>
               // If a previous field caused a scan, this field must scan too.
               val expectationOk = !scanning || matchingClause.expectedIndexBehavior == IndexScan
               // If this field causes a scan, later fields must scan too.
@@ -173,13 +171,11 @@ object MongoIndexChecker {
                 matchingClause.actualIndexBehavior == IndexScan ||
                 matchingClause.actualIndexBehavior == PartialIndexScan
               expectationOk && matchesCompoundIndex(rest, remainingClauses, scanning = nowScanning)
-            }
-            case Nil => {
+
+            case Nil =>
               // We can skip a field in the index, but everything after it must scan.
               matchesCompoundIndex(rest, remainingClauses, scanning = true)
-            }
           }
-        }
       }
     }
   }
