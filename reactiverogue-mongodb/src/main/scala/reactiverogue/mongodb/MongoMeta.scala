@@ -13,7 +13,6 @@
 
 package reactiverogue.mongodb
 
-import reactivemongo.bson._
 import reactivemongo.api._
 import reactivemongo.api.collections.default.BSONCollection
 

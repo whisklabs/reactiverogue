@@ -17,8 +17,6 @@
 package reactiverogue.record
 package field
 
-import reactivemongo.bson._
-
 trait BooleanTypedField extends DirectBsonField[Boolean]
 
 class BooleanField[OwnerType <: BsonRecord[OwnerType]](rec: OwnerType)
