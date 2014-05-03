@@ -1,4 +1,4 @@
-import Dependencies._
+import dependencies._
 import common._
 
 lazy val mongodb =
