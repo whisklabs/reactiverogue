@@ -15,7 +15,7 @@ object dependencies {
   
   val junit = "junit" % "junit" % "4.5"
   val junitInterface = "com.novocode" % "junit-interface" % "0.6"
-  val specs2 = "org.specs2" %% "specs2" % "1.12.3"
+  val specs2 = "org.specs2" %% "specs2-junit" % "2.3.11"
   
   val mongoDependencies =
     Seq(reactiveMongo, jodaTime, jodaConvert)
