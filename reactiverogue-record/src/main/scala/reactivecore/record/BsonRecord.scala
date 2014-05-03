@@ -22,6 +22,7 @@ import scala.collection.JavaConversions._
 
 import reactivemongo.bson._
 import java.lang.reflect.Method
+import scala.language.existentials
 
 /** Specialized Record that can be encoded and decoded from BSON (DBObject) */
 trait BsonRecord[MyType <: BsonRecord[MyType]] {

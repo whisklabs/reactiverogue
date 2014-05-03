@@ -11,6 +11,7 @@ import reactivemongo.bson._
 import reactiverogue.mongodb.BSONSerializable
 import play.api.libs.json.{ Format, Writes }
 import play.modules.reactivemongo.json.BSONFormats
+import scala.language.higherKinds
 
 object CondOps extends Enumeration {
   type Op = Value

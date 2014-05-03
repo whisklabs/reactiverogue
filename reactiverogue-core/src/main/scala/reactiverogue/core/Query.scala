@@ -2,7 +2,7 @@
 
 package reactiverogue.core
 
-import com.foursquare.index.MongoIndex
+import scala.language.existentials
 import reactiverogue.core.MongoHelpers.{
   AndCondition,
   MongoBuilder,

@@ -16,6 +16,7 @@ object common {
     .settings(commonSettings:_*)
     .settings(scalariformSettings:_*)
     .settings(
+      scalacOptions ++= Seq("-feature", "-deprecation"),
       version := "0.1.0-" + gitHeadCommitSha.value,
       resolvers ++= Seq(
         "Sonatype Snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/",

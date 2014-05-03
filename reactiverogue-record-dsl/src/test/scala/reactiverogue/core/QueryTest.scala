@@ -1,6 +1,7 @@
 // Copyright 2011 Foursquare Labs Inc. All Rights Reserved.
 package reactiverogue.core
 
+import scala.language.postfixOps
 import reactiverogue.core.LiftRogue._
 
 import java.util.regex.Pattern
@@ -87,10 +88,10 @@ class QueryTest extends JUnitMustMatchers {
     Venue.where(_.id exists true).toString() must_== """db.venues.find({"_id":{"$exists":true}})"""
 
     // startsWith, regex
-    Venue.where(_.venuename startsWith "Starbucks").toString() must_== """db.venues.find({"venuename":{"$regex":"^\\QStarbucks\\E","$options":""}})"""
+    Venue.where(_.venuename startsWith "Starbucks").toString() must_== """db.venues.find({"venuename":{"$regex":"^\\QStarbucks\\E"}})"""
     val p1 = Pattern.compile("Star.*")
-    Venue.where(_.venuename regexWarningNotIndexed p1).toString() must_== """db.venues.find({"venuename":{"$regex":"Star.*","$options":""}})"""
-    Venue.where(_.venuename matches p1).toString() must_== """db.venues.find({"venuename":{"$regex":"Star.*","$options":""}})"""
+    Venue.where(_.venuename regexWarningNotIndexed p1).toString() must_== """db.venues.find({"venuename":{"$regex":"Star.*"}})"""
+    Venue.where(_.venuename matches p1).toString() must_== """db.venues.find({"venuename":{"$regex":"Star.*"}})"""
     val p2 = Pattern.compile("Star.*", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE)
     Venue.where(_.venuename matches p2).toString() must_== """db.venues.find({"venuename":{"$regex":"Star.*","$options":"im"}})"""
 
@@ -99,18 +100,18 @@ class QueryTest extends JUnitMustMatchers {
     Venue.where(_.tags in List("db", "ka")).toString() must_== """db.venues.find({"tags":{"$in":["db","ka"]}})"""
     Venue.where(_.tags nin List("db", "ka")).toString() must_== """db.venues.find({"tags":{"$nin":["db","ka"]}})"""
     Venue.where(_.tags neqs List("db", "ka")).toString() must_== """db.venues.find({"tags":{"$ne":["db","ka"]}})"""
-    Venue.where(_.tags matches "kara.*".r).toString() must_== """db.venues.find({"tags":{"$regex":"kara.*","$options":""}})"""
+    Venue.where(_.tags matches "kara.*".r).toString() must_== """db.venues.find({"tags":{"$regex":"kara.*"}})"""
     Venue.where(_.tags size 3).toString() must_== """db.venues.find({"tags":{"$size":3}})"""
     Venue.where(_.tags contains "karaoke").toString() must_== """db.venues.find({"tags":"karaoke"})"""
     Venue.where(_.tags notcontains "karaoke").toString() must_== """db.venues.find({"tags":{"$ne":"karaoke"}})"""
     Venue.where(_.popularity contains 3).toString() must_== """db.venues.find({"popularity":3})"""
     Venue.where(_.popularity at 0 eqs 3).toString() must_== """db.venues.find({"popularity.0":3})"""
     //    Venue.where(_.categories at 0 eqs oid).toString() must_== """db.venues.find({"categories.0":"%s"})""".format(oid.stringify)
-    Venue.where(_.tags at 0 startsWith "kara").toString() must_== """db.venues.find({"tags.0":{"$regex":"^\\Qkara\\E","$options":""}})"""
+    Venue.where(_.tags at 0 startsWith "kara").toString() must_== """db.venues.find({"tags.0":{"$regex":"^\\Qkara\\E"}})"""
     // alternative syntax
-    Venue.where(_.tags idx 0 startsWith "kara").toString() must_== """db.venues.find({"tags.0":{"$regex":"^\\Qkara\\E","$options":""}})"""
-    Venue.where(_.tags startsWith "kara").toString() must_== """db.venues.find({"tags":{"$regex":"^\\Qkara\\E","$options":""}})"""
-    Venue.where(_.tags matches "k.*".r).toString() must_== """db.venues.find({"tags":{"$regex":"k.*","$options":""}})"""
+    Venue.where(_.tags idx 0 startsWith "kara").toString() must_== """db.venues.find({"tags.0":{"$regex":"^\\Qkara\\E"}})"""
+    Venue.where(_.tags startsWith "kara").toString() must_== """db.venues.find({"tags":{"$regex":"^\\Qkara\\E"}})"""
+    Venue.where(_.tags matches "k.*".r).toString() must_== """db.venues.find({"tags":{"$regex":"k.*"}})"""
 
     // maps
     Tip.where(_.counts at "foo" eqs 3).toString() must_== """db.tips.find({"counts.foo":3})"""
@@ -323,7 +324,7 @@ class QueryTest extends JUnitMustMatchers {
     */
     Venue.where(_.legacyid eqs 1)
       .modify(_.tags pullWhere (_ startsWith "prefix"))
-      .toString() must_== query + """{"$pull":{"tags":{"$regex":"^\\Qprefix\\E","$options":""}}}""" + suffix
+      .toString() must_== query + """{"$pull":{"tags":{"$regex":"^\\Qprefix\\E"}}}""" + suffix
     Venue.where(_.legacyid eqs 1)
       .modify(_.popularity pullWhere (_ gt 2))
       .toString() must_== query + """{"$pull":{"popularity":{"$gt":2}}}""" + suffix
@@ -775,7 +776,7 @@ class QueryTest extends JUnitMustMatchers {
     }
 
     private val settings = new Settings
-    val loader = manifest[Venue].erasure.getClassLoader
+    val loader = manifest[Venue].runtimeClass.getClassLoader
     settings.classpath.value = Source.fromURL(loader.getResource("app.class.path")).mkString
     settings.bootclasspath.append(Source.fromURL(loader.getResource("boot.class.path")).mkString)
     settings.deprecation.value = true // enable detailed deprecation warnings

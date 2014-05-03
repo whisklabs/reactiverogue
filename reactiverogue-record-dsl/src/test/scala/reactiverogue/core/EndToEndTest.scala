@@ -1,6 +1,7 @@
 // Copyright 2011 Foursquare Labs Inc. All Rights Reserved.
 package reactiverogue.core
 
+import scala.language.postfixOps
 import reactiverogue.core.LiftRogue._
 import reactiverogue.core.Iter._
 import java.util.Calendar

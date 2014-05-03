@@ -15,6 +15,7 @@ import reactiverogue.record.field._
 import reactiverogue.mongodb.BSONSerializable
 import reactivemongo.bson._
 import play.api.libs.json.{ Format, Writes }
+import scala.language.implicitConversions
 
 trait LiftRogue extends Rogue {
   def OrQuery[M <: MongoRecord[M], R](subqueries: Query[M, R, _]*): Query[M, R, Unordered with Unselected with Unlimited with Unskipped with HasOrClause] = {
