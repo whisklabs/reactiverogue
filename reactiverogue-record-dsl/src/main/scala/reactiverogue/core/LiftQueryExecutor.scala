@@ -86,12 +86,12 @@ object LiftQueryExecutorHelpers {
   }
 
   def setFieldFromDbo(field: LField[_, _], dbo: BSONDocument, fieldNames: List[String]): Option[_] = {
-    if (field.isInstanceOf[BsonRecordField[_, _]]) {
-      val brf = field.asInstanceOf[BsonRecordField[_, _]]
-      val inner = brf.value.asInstanceOf[BsonRecord[_]]
-      setInstanceFieldFromDboList(inner, dbo, fieldNames)
-    } else {
-      fallbackValueFromDbObject(dbo, fieldNames)
+    field match {
+      case brf: BsonRecordField[_, _] =>
+        val inner = brf.value.asInstanceOf[BsonRecord[_]]
+        setInstanceFieldFromDboList(inner, dbo, fieldNames)
+      case _ =>
+        fallbackValueFromDbObject(dbo, fieldNames)
     }
   }
 
