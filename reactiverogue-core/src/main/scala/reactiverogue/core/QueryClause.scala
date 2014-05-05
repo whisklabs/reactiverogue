@@ -21,6 +21,12 @@ abstract class QueryClause[+V](val fieldName: String, val actualIndexBehavior: M
 abstract class IndexableQueryClause[V, Ind <: MaybeIndexed](fname: String, actualIB: Ind, conds: (CondOps.Value, BSONValue)*)
   extends QueryClause[V](fname, actualIB, conds: _*)
 
+case class NegatedQueryClause[+V](clause: QueryClause[V], override val expectedIndexBehavior: MaybeIndexed = Index) extends QueryClause[V](
+  clause.fieldName, clause.actualIndexBehavior, CondOps.Not -> BSONDocument(clause.conditions.map({ case (k, v) => k.toString -> v }))) {
+
+  override def withExpectedIndexBehavior(b: MaybeIndexed): QueryClause[V] = this.copy(expectedIndexBehavior = b)
+}
+
 trait ShardKeyClause
 
 case class AllQueryClause[V](override val fieldName: String, vs: List[BSONValue], override val expectedIndexBehavior: MaybeIndexed = Index)

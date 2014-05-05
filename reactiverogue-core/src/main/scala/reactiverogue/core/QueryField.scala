@@ -16,6 +16,7 @@ import scala.language.higherKinds
 object CondOps extends Enumeration {
   type Op = Value
   val Ne = Value("$ne")
+  val Not = Value("$not")
   val Lt = Value("$lt")
   val Gt = Value("$gt")
   val LtEq = Value("$lte")

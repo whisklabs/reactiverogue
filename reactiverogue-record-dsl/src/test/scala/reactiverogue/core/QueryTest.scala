@@ -235,6 +235,10 @@ class QueryTest extends JUnitMustMatchers {
 
     // raw query clauses
     Venue.where(_.mayor eqs 1).raw(_ += "$where" -> BSONString("this.a > 3")).toString() must_== """db.venues.find({"mayor":1,"$where":"this.a > 3"})"""
+
+    // $not clauses
+    Venue.where(_.mayor eqs 1).not(_.mayor_count lt 5).toString() must_== """db.venues.find({"mayor":1,"mayor_count":{"$not":{"$lt":5}}})"""
+    Venue.where(_.mayor eqs 1).not(_.mayor_count lt 5).and(_.mayor_count gt 3).toString() must_== """db.venues.find({"mayor":1,"mayor_count":{"$gt":3,"$not":{"$lt":5}}})"""
   }
 
   @Test

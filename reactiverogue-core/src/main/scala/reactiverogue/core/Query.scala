@@ -78,6 +78,12 @@ case class Query[M, R, +State](
     addClause(clause, expectedIndexBehavior = Index)
 
   /**
+   * Adds a negated clause to the query.
+   */
+  def not[F](clause: M => QueryClause[F]) =
+    addClause(clause andThen (NegatedQueryClause(_)), expectedIndexBehavior = Index)
+
+  /**
    * Adds an iscan clause to a query.
    */
   def iscan[F](clause: M => QueryClause[F]) =
