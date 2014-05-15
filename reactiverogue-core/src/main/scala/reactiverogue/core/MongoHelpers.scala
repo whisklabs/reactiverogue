@@ -5,7 +5,7 @@ package reactiverogue.core
 import reactivemongo.bson._
 import scala.collection.immutable.ListMap
 import collection.mutable.ListBuffer
-import play.modules.reactivemongo.json.BSONFormats
+import reactiverogue.core.json.BSONFormats
 import play.api.libs.json.Json
 
 object MongoHelpers extends Rogue {

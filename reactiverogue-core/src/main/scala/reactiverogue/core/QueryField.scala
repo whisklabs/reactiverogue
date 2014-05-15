@@ -10,7 +10,7 @@ import scala.util.matching.Regex
 import reactivemongo.bson._
 import reactiverogue.mongodb.BSONSerializable
 import play.api.libs.json.{ Format, Writes }
-import play.modules.reactivemongo.json.BSONFormats
+import reactiverogue.core.json.BSONFormats
 import scala.language.higherKinds
 
 object CondOps extends Enumeration {

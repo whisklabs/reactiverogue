@@ -16,7 +16,7 @@ package field
 
 import reactivemongo.bson._
 import play.api.libs.json.{ JsObject, Format }
-import play.modules.reactivemongo.json.BSONFormats
+import reactiverogue.core.json.BSONFormats
 
 class JsObjectListField[OwnerType <: BsonRecord[OwnerType], T: Format](rec: OwnerType)
     extends Field[List[T], OwnerType] with MandatoryTypedField[List[T]] {
