@@ -3,6 +3,7 @@ package reactiverogue.core
 // Copyright 2012 Foursquare Labs Inc. All Rights Reserved.
 
 import com.foursquare.field.Field
+import play.api.libs.iteratee.Enumerator
 import reactiverogue.core.MongoHelpers.MongoSelect
 import reactiverogue.core.Rogue._
 import concurrent.{ Future, ExecutionContext }
@@ -64,6 +65,9 @@ case class ExecutableQuery[MB, M <: MB, R, State](
    */
   def fetch[S2](limit: Int)(implicit ev1: AddLimit[State, S2], ev2: ShardingOk[M, S2], ec: ExecutionContext): Future[List[R]] =
     db.fetch(query.limit(limit))
+
+  def fetchEnumerator()(implicit ec: ExecutionContext): Enumerator[R] =
+    db.fetchEnumerator(query)
 
   //  /**
   //   * fetch a batch of results, and execute a function on each element of the list.

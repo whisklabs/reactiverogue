@@ -2,6 +2,7 @@
 
 package reactiverogue.core
 
+import play.api.libs.iteratee.Enumerator
 import reactiverogue.core.MongoHelpers.{ MongoModify, MongoSelect }
 import reactivemongo.core.commands.GetLastError
 import reactivemongo.bson.BSONDocument
@@ -66,6 +67,19 @@ trait QueryExecutor[MB] extends Rogue {
       query.lim match {
         case Some(limit) => cursor.collect[List](limit)
         case None => cursor.collect[List]()
+      }
+    }
+  }
+
+  def fetchEnumerator[M <: MB, R, State](query: Query[M, R, State])(implicit ev: ShardingOk[M, State], ec: ExecutionContext): Enumerator[R] = {
+    if (optimizer.isEmptyQuery(query)) {
+      Enumerator.empty
+    } else {
+      implicit val s = serializer[M, R](query.meta, query.select)
+      val cursor = adapter.queryBuilder(query, None).cursor[R]
+      query.lim match {
+        case Some(limit) => cursor.enumerate(maxDocs = limit)
+        case None => cursor.enumerate()
       }
     }
   }
