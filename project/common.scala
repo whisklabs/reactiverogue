@@ -20,7 +20,7 @@ object common {
       scalacOptions ++= Seq("-feature", "-deprecation"),
       version := "0.1.0-" + gitHeadCommitSha.value,
       resolvers ++= Seq(
-        "Sonatype Snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/",
+        "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
          "typesafe" at "http://repo.typesafe.com/typesafe/releases/"),
       publishTo := {
         val dir = if (version.value.trim.endsWith(gitHeadCommitSha.value)) "snapshots" else "releases"
