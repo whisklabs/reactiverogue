@@ -10,11 +10,12 @@ import com.foursquare.field.{
 import com.foursquare.index.IndexBuilder
 import reactiverogue.core.MongoHelpers.{ AndCondition, MongoModify }
 import java.util.Date
+import reactiverogue.core.json.BSONFormats
 import reactiverogue.record.{ BsonRecord, MongoRecord, MongoMetaRecord, Field, MandatoryTypedField, OptionalTypedField }
 import reactiverogue.record.field._
 import reactiverogue.mongodb.BSONSerializable
 import reactivemongo.bson._
-import play.api.libs.json.{ Format, Writes }
+import play.api.libs.json.{ Json, Format, Writes }
 import scala.language.implicitConversions
 
 trait LiftRogue extends Rogue {
@@ -225,6 +226,27 @@ trait LiftRogue extends Rogue {
 
   implicit def BsonRecordIsBSONSerializable[T <: BsonRecord[T]]: BsonRecordIsBSONSerializable[T] =
     _BsonRecordIsBSONType.asInstanceOf[BsonRecordIsBSONSerializable[T]]
+
+  class JsonTypesAreBSONTypes[T: Format] extends BSONSerializable[T] {
+
+    object ValueType {
+
+      def unapply(bson: BSONValue): Option[T] = {
+        Json.fromJson[T](BSONFormats.toJSON(bson)).asOpt
+      }
+    }
+
+    override def asBSONValue(v: T): BSONValue = {
+      BSONFormats.toBSON(Json.toJson(v)).get
+    }
+
+    override def fromBSONValue = {
+      case ValueType(value) => value
+    }
+  }
+
+  implicit def jsonTypesAreBSONTypes[T: Format]: BSONSerializable[T] =
+    new JsonTypesAreBSONTypes[T]
 }
 
 object LiftRogue extends LiftRogue
