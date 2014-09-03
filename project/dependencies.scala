@@ -6,11 +6,11 @@ object dependencies {
     val Reactivemongo = "0.11.0-SNAPSHOT"
   }
 
-  val playJson = "com.typesafe.play" %% "play-json" % "2.3.0-RC1"
+  val playJson = "com.typesafe.play" %% "play-json" % "2.3.4"
   val reactiveMongo = "org.reactivemongo" %% "reactivemongo" % V.Reactivemongo
   
-  val jodaTime = "joda-time" % "joda-time" % "2.1"
-  val jodaConvert = "org.joda" % "joda-convert" % "1.4"
+  val jodaTime = "joda-time" % "joda-time" % "2.3"
+  val jodaConvert = "org.joda" % "joda-convert" % "1.6"
   
   val junit = "junit" % "junit" % "4.5"
   val junitInterface = "com.novocode" % "junit-interface" % "0.6"
