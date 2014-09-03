@@ -226,27 +226,6 @@ trait LiftRogue extends Rogue {
 
   implicit def BsonRecordIsBSONSerializable[T <: BsonRecord[T]]: BsonRecordIsBSONSerializable[T] =
     _BsonRecordIsBSONType.asInstanceOf[BsonRecordIsBSONSerializable[T]]
-
-  class JsonTypesAreBSONTypes[T: Format] extends BSONSerializable[T] {
-
-    object ValueType {
-
-      def unapply(bson: BSONValue): Option[T] = {
-        Json.fromJson[T](BSONFormats.toJSON(bson)).asOpt
-      }
-    }
-
-    override def asBSONValue(v: T): BSONValue = {
-      BSONFormats.toBSON(Json.toJson(v)).get
-    }
-
-    override def fromBSONValue = {
-      case ValueType(value) => value
-    }
-  }
-
-  implicit def jsonTypesAreBSONTypes[T: Format]: BSONSerializable[T] =
-    new JsonTypesAreBSONTypes[T]
 }
 
 object LiftRogue extends LiftRogue
