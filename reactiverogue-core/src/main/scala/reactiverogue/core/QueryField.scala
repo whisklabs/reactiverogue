@@ -435,6 +435,10 @@ class BsonRecordModifyField[M, B](field: Field[B, M], asDBDocument: B => BSONDoc
   override def valueToDB(b: B) = asDBDocument(b)
 }
 
+class JsonTypeModifyField[V: Writes, M](field: Field[V, M]) extends AbstractModifyField[V, M](field) {
+  override def valueToDB(v: V) = BSONFormats.BSONDocumentFormat.reads(implicitly[Writes[V]].writes(v)).get
+}
+
 class MapModifyField[V: BSONSerializable, M](field: Field[Map[String, V], M])
   extends ModifyField[Map[String, V], M](field)
 

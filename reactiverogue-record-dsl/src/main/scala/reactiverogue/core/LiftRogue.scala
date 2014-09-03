@@ -109,7 +109,7 @@ trait LiftRogue extends Rogue {
   implicit def ccFieldToQueryField[M <: BsonRecord[M], F: Writes](f: JsObjectField[M, F]): JsonTypeQueryField[F, M] =
     new JsonTypeQueryField[F, M](f)
 
-  implicit def jsObjectieldToListQueryField[M <: BsonRecord[M], F: Format](f: JsObjectListField[M, F]): JsonTypeListQueryField[F, M] =
+  implicit def jsObjectListFieldToListQueryField[M <: BsonRecord[M], F: Format](f: JsObjectListField[M, F]): JsonTypeListQueryField[F, M] =
     new JsonTypeListQueryField[F, M](liftField2Recordv2Field(f))
 
   implicit def doubleFieldtoNumericQueryField[M <: BsonRecord[M], F](f: Field[Double, M]): NumericQueryField[Double, M] =
@@ -166,6 +166,9 @@ trait LiftRogue extends Rogue {
 
   implicit def dateFieldToDateModifyField[M <: BsonRecord[M]](f: Field[Date, M]): DateModifyField[M] =
     new DateModifyField(f)
+
+  implicit def jsObjectFieldToModifyField[M <: BsonRecord[M], V: Format](f: JsObjectField[M, V]): JsonTypeModifyField[V, M] =
+    new JsonTypeModifyField[V, M](liftField2Recordv2Field(f))
 
   implicit def jsObjectListFieldToListModifyField[M <: BsonRecord[M], V: Format](f: JsObjectListField[M, V]): JsonTypeListModifyField[V, M] =
     new JsonTypeListModifyField[V, M](liftField2Recordv2Field(f))
@@ -226,6 +229,7 @@ trait LiftRogue extends Rogue {
 
   implicit def BsonRecordIsBSONSerializable[T <: BsonRecord[T]]: BsonRecordIsBSONSerializable[T] =
     _BsonRecordIsBSONType.asInstanceOf[BsonRecordIsBSONSerializable[T]]
+
 }
 
 object LiftRogue extends LiftRogue
