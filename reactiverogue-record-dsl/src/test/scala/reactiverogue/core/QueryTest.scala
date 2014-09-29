@@ -95,7 +95,7 @@ class QueryTest extends JUnitMustMatchers {
     Venue.where(_.venuename matches p2).toString() must_== """db.venues.find({"venuename":{"$regex":"Star.*","$options":"im"}})"""
 
     //text search
-    Venue.where(_.venuename textSearch "Starbucks").toString() must_== """db.venues.find({"venuename":{"$text":{"$search":"Starbucks"}}})"""
+    Venue.textSearch("Starbucks").toString() must_== """db.venues.find({"$text":{"$search":"Starbucks"}})"""
 
     // all, in, size, contains, at
     Venue.where(_.tags all List("db", "ka")).toString() must_== """db.venues.find({"tags":{"$all":["db","ka"]}})"""

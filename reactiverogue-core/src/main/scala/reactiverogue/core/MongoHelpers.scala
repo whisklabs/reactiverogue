@@ -41,7 +41,7 @@ object MongoHelpers extends Rogue {
             // and can be chained like { a : { $gt : 2, $lt: 6 }}.
             // So if there is any equality clause, apply it (only) to the builder;
             // otherwise, chain the clauses.
-            cs.find({ i => i.isInstanceOf[EqClause[_, _]] || i.isInstanceOf[RegexQueryClause[_]] }) match {
+            cs.find({ i => i.isInstanceOf[EqClause[_, _]] || i.isInstanceOf[RegexQueryClause[_]] || i.isInstanceOf[TextSearchQueryClause] }) match {
               case Some(eqClause) => eqClause.extend(buffer, signature)
               case None =>
                 val nameBuff = ListBuffer.empty[(String, BSONValue)]

@@ -65,10 +65,15 @@ case class Query[M, R, +State](
     this.copy(condition = condition.copy(clauses = newClause :: condition.clauses))
   }
 
+  private def addQueryClause(cl: QueryClause[_]): Query[M, R, State] = {
+    val newClause = cl.withExpectedIndexBehavior(Index)
+    this.copy(condition = condition.copy(clauses = newClause :: condition.clauses))
+  }
+
   /**
    * Adds a where clause to a query.
    */
-  def where[F](clause: M => QueryClause[F]) =
+  def where[F](clause: M => QueryClause[F]): Query[M, R, State] =
     addClause(clause, expectedIndexBehavior = Index)
 
   /**
@@ -77,6 +82,14 @@ case class Query[M, R, +State](
   def and[F](clause: M => QueryClause[F]) =
     addClause(clause, expectedIndexBehavior = Index)
 
+  def textSearch(term: String): Query[M, R, State] =
+    textSearch(term, None)
+
+  def textSearch(term: String, language: String): Query[M, R, State] =
+    textSearch(term, Some(language))
+
+  def textSearch(term: String, language: Option[String]): Query[M, R, State] =
+    addQueryClause(new TextSearchQueryClause("", term, language))
   /**
    * Adds a negated clause to the query.
    */
