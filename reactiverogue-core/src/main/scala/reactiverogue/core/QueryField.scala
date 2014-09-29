@@ -260,6 +260,16 @@ trait StringRegexOps[V, M] {
 class StringQueryField[F <: String, M](override val field: Field[F, M])
     extends AbstractQueryField[F, M](field)
     with StringRegexOps[F, M] {
+
+  def textSearch(s: String): TextSearchQueryClause[DocumentScan] =
+    new TextSearchQueryClause[DocumentScan](field.name, DocumentScan, s, None)
+
+  def textSearch(s: String, language: String): TextSearchQueryClause[DocumentScan] =
+    new TextSearchQueryClause[DocumentScan](field.name, DocumentScan, s, Some(language))
+
+  def textSearch(s: String, language: Option[String]): TextSearchQueryClause[DocumentScan] =
+    new TextSearchQueryClause[DocumentScan](field.name, DocumentScan, s, language)
+
   override def valueToDB(v: F) = BSONString(v)
 }
 

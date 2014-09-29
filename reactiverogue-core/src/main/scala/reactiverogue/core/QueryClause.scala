@@ -142,6 +142,23 @@ case class RegexQueryClause[Ind <: MaybeIndexed](override val fieldName: String,
   override def withExpectedIndexBehavior(b: MaybeIndexed): RegexQueryClause[Ind] = this.copy(expectedIndexBehavior = b)
 }
 
+case class TextSearchQueryClause[Ind <: MaybeIndexed](override val fieldName: String, actualIB: Ind, text: String,
+  language: Option[String], override val expectedIndexBehavior: MaybeIndexed = Index)
+    extends IndexableQueryClause[Pattern, Ind](fieldName, actualIB) {
+
+  def textDoc: BSONDocument = {
+    language.fold(BSONDocument("$search" -> text))(l => BSONDocument("$search" -> text, "$language" -> l))
+  }
+
+  override def extend(q: ListBuffer[(String, BSONValue)], signature: Boolean) {
+    q +=
+      (if (signature) "$text" -> BSONDocument("$search" -> 0, "$language" -> 0)
+      else "$text" -> textDoc)
+  }
+
+  override def withExpectedIndexBehavior(b: MaybeIndexed): TextSearchQueryClause[Ind] = this.copy(expectedIndexBehavior = b)
+}
+
 case class RawQueryClause(f: ListBuffer[(String, BSONValue)] => Unit, override val expectedIndexBehavior: MaybeIndexed = DocumentScan) extends IndexableQueryClause("raw", DocumentScan) {
   override def extend(q: ListBuffer[(String, BSONValue)], signature: Boolean) {
     f(q)

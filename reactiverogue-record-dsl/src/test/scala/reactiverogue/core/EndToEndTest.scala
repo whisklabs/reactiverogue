@@ -1,6 +1,7 @@
 // Copyright 2011 Foursquare Labs Inc. All Rights Reserved.
 package reactiverogue.core
 
+import reactivemongo.api.indexes.IndexType
 import reactiverogue.core.LiftRogue._
 import reactiverogue.core.Iter._
 import java.util.Calendar
