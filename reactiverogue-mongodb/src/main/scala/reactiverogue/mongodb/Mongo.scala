@@ -55,9 +55,9 @@ object MongoAddress {
 
   def apply(uri: String): MongoAddress = {
     MongoConnection.parseURI(uri) match {
-      case Success(MongoConnection.ParsedURI(hosts, Some(db), auth)) =>
-        MongoAddress(MongoHost(hosts.map(h => h._1 + ":" + h._2), auth.toList), db)
-      case Success(MongoConnection.ParsedURI(_, None, _)) =>
+      case Success(MongoConnection.ParsedURI(hosts, opts, _, Some(db), auth)) =>
+        MongoAddress(MongoHost(hosts.map(h => h._1 + ":" + h._2), opts, auth.toList), db)
+      case Success(MongoConnection.ParsedURI(_, _, _, None, _)) =>
         throw new Exception(s"Missing database name in mongodb.uri '$uri'")
       case Failure(e) =>
         throw new Exception(s"Invalid mongodb.uri '$uri'")
@@ -72,13 +72,13 @@ abstract class MongoHostBase {
   def connection: MongoConnection
 }
 
-case class MongoHost(nodes: Seq[String], authentications: Seq[Authenticate] = Seq.empty) extends MongoHostBase {
+case class MongoHost(nodes: Seq[String], options: MongoConnectionOptions, authentications: Seq[Authenticate] = Seq.empty) extends MongoHostBase {
   val driver = new MongoDriver
-  lazy val connection = driver.connection(nodes, authentications)
+  lazy val connection = driver.connection(nodes, options, authentications)
 }
 
 object MongoHost {
-  def apply(host: String): MongoHost = MongoHost(Seq(host))
+  def apply(host: String): MongoHost = MongoHost(Seq(host), MongoConnectionOptions())
 }
 
 /*
