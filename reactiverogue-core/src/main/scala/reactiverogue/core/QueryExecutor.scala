@@ -2,7 +2,7 @@
 
 package reactiverogue.core
 
-import play.api.libs.iteratee.Enumerator
+import play.api.libs.iteratee.{ Iteratee, Enumerator }
 import reactiverogue.core.MongoHelpers.{ MongoModify, MongoSelect }
 import reactivemongo.core.commands.GetLastError
 import reactivemongo.bson.BSONDocument
@@ -63,7 +63,7 @@ trait QueryExecutor[MB] extends Rogue {
       Future.successful(Nil)
     } else {
       implicit val s = serializer[M, R](query.meta, query.select)
-      val cursor = adapter.queryBuilder(query, None).cursor[R]
+      val cursor = adapter.cursor(query, None)
       query.lim match {
         case Some(limit) => cursor.collect[List](limit)
         case None => cursor.collect[List]()
@@ -76,7 +76,7 @@ trait QueryExecutor[MB] extends Rogue {
       Enumerator.empty
     } else {
       implicit val s = serializer[M, R](query.meta, query.select)
-      val cursor = adapter.queryBuilder(query, None).cursor[R]
+      val cursor = adapter.cursor(query, None)
       query.lim match {
         case Some(limit) => cursor.enumerate(maxDocs = limit)
         case None => cursor.enumerate()
@@ -89,39 +89,17 @@ trait QueryExecutor[MB] extends Rogue {
       Future.successful(None)
     } else {
       implicit val s = serializer[M, R](query.meta, query.select)
-      adapter.queryBuilder(query, None).one[R]
+      adapter.one[M, R](query, None)
     }
   }
 
-  def foreach[M <: MB, R, State](query: Query[M, R, State])(f: R => Unit)(implicit ev: ShardingOk[M, State], ec: ExecutionContext): Unit = {
+  def foreach[M <: MB, R, State](query: Query[M, R, State])(f: R => Unit)(implicit ev: ShardingOk[M, State], ec: ExecutionContext): Future[Unit] = {
     if (optimizer.isEmptyQuery(query)) {
-      ()
+      Future.successful(())
     } else {
-      val s = serializer[M, R](query.meta, query.select)
-      adapter.query(query, None)(dbo => f(s.fromBSONDocument(dbo)))
+      fetchEnumerator[M, R, State](query).run(Iteratee.foreach(f))
     }
   }
-
-  //  def fetchBatch[M <: MB, R, T, State](query: Query[M, R, State],
-  //                                       batchSize: Int)
-  //                                      (f: List[R] => List[T])
-  //                                      (implicit ev: ShardingOk[M, State]): List[T] = {
-  //    if (optimizer.isEmptyQuery(query)) {
-  //      Nil
-  //    } else {
-  //      val s = serializer[M, R](query.meta, query.select)
-  //      val rv = new ListBuffer[T]
-  //      val buf = new ListBuffer[R]
-  //
-  //      adapter.query(query, Some(batchSize)) { dbo =>
-  //        buf += s.fromBSONDocument(dbo)
-  //        drainBuffer(buf, rv, f, batchSize)
-  //      }
-  //      drainBuffer(buf, rv, f, 1)
-  //
-  //      rv.toList
-  //    }
-  //  }
 
   def bulkDelete_!![M <: MB, State](query: Query[M, _, State],
     writeConcern: GetLastError = defaultWriteConcern)(implicit ev1: Required[State, Unselected with Unlimited with Unskipped],

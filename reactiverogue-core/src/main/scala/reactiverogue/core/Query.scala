@@ -2,6 +2,8 @@
 
 package reactiverogue.core
 
+import reactivemongo.api.ReadPreference
+
 import scala.language.existentials
 import reactiverogue.core.MongoHelpers.{
   AndCondition,
@@ -56,7 +58,8 @@ case class Query[M, R, +State](
     hint: Option[ListMap[String, BSONValue]],
     condition: AndCondition,
     order: Option[MongoOrder],
-    select: Option[MongoSelect[M, R]]) {
+    select: Option[MongoSelect[M, R]],
+    readPreference: Option[ReadPreference]) {
 
   private def addClause[F](clause: M => QueryClause[F],
     expectedIndexBehavior: MaybeIndexed): Query[M, R, State] = {
@@ -278,7 +281,7 @@ case class Query[M, R, +State](
   //   * For more info, see
   //   * http://www.mongodb.org/display/DOCS/slaveOk
   //   */
-  //  def setReadPreference(r: ReadPreference): Query[M, R, State] = this.copy(readPreference = Some(r))
+  def setReadPreference(r: ReadPreference): Query[M, R, State] = this.copy(readPreference = Some(r))
 
   //TODO: index bson part
   //def hint(index: MongoIndex[M]): Query[M, R, State] = this.copy(hint = Some(index.asListMap))

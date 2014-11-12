@@ -175,85 +175,21 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
     qb
   }
 
-  //  def iterate[M <: MB, R, S](query: Query[M, R, _],
-  //                             initialState: S,
-  //                             f: DBObject => R,
-  //                             readPreference: Option[ReadPreference] = None)
-  //                            (handler: (S, Event[R]) => Command[S]): S = {
-  //    def getObject(cursor: DBCursor): Either[Exception, R] = {
-  //      try {
-  //        Right(f(cursor.next))
-  //      } catch {
-  //        case e: Exception => Left(e)
-  //      }
-  //    }
-  //
-  //    @scala.annotation.tailrec
-  //    def iter(cursor: DBCursor, curState: S): S = {
-  //      if (cursor.hasNext) {
-  //        getObject(cursor) match {
-  //          case Left(e) => handler(curState, Error(e)).state
-  //          case Right(r) => handler(curState, Item(r)) match {
-  //            case Continue(s) => iter(cursor, s)
-  //            case Return(s) => s
-  //          }
-  //        }
-  //      } else {
-  //        handler(curState, EOF).state
-  //      }
-  //    }
-  //
-  //    doQuery("find", query, None, readPreference)(cursor =>
-  //      iter(cursor, initialState)
-  //    )
-  //  }
-  //
-  //  def iterateBatch[M <: MB, R, S](query: Query[M, R, _],
-  //                                  batchSize: Int,
-  //                                  initialState: S,
-  //                                  f: BSONDocument => R)
-  //                                 (handler: (S, Event[List[R]]) => Command[S]): S = {
-  //    val buf = new ListBuffer[R]
-  //
-  //    def getBatch(cursor: DBCursor): Either[Exception, List[R]] = {
-  //      try {
-  //        buf.clear()
-  //        // ListBuffer#length is O(1) vs ListBuffer#size is O(N) (true in 2.9.x, fixed in 2.10.x)
-  //        while (cursor.hasNext && buf.length < batchSize) {
-  //          buf += f(cursor.next)
-  //        }
-  //        Right(buf.toList)
-  //      } catch {
-  //        case e: Exception => Left(e)
-  //      }
-  //    }
-  //
-  //    @scala.annotation.tailrec
-  //    def iter(cursor: DBCursor, curState: S): S = {
-  //      if (cursor.hasNext) {
-  //        getBatch(cursor) match {
-  //          case Left(e) => handler(curState, Error(e)).state
-  //          case Right(Nil) => handler(curState, EOF).state
-  //          case Right(rs) => handler(curState, Item(rs)) match {
-  //            case Continue(s) => iter(cursor, s)
-  //            case Return(s) => s
-  //          }
-  //        }
-  //      } else {
-  //        handler(curState, EOF).state
-  //      }
-  //    }
-  //
-  //    doQuery("find", query, Some(batchSize))(cursor => {
-  //      iter(cursor, initialState)
-  //    })
-  //  }
+  def cursor[M <: MB, T: BSONDocumentReader](query: Query[M, _, _], batchSize: Option[Int])(implicit ec: ExecutionContext): Cursor[T] = {
+    val qb = queryBuilder(query, batchSize)
+    query.readPreference match {
+      case Some(rp) => qb.cursor(rp)
+      case None => qb.cursor[T]
+    }
+  }
 
-  //  def explain[M <: MB](query: Query[M, _, _]): String = {
-  //    doQuery("find", query, None){cursor =>
-  //      cursor.explain.toString
-  //    }
-  //  }
+  def one[M <: MB, T: BSONDocumentReader](query: Query[M, _, _], batchSize: Option[Int])(implicit ec: ExecutionContext): Future[Option[T]] = {
+    val qb = queryBuilder(query, batchSize)
+    query.readPreference match {
+      case Some(rp) => qb.one[T](rp)
+      case None => qb.one[T]
+    }
+  }
 
   def doQuery[M <: MB, T](
     operation: String,
@@ -265,22 +201,9 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
 
     runCommand(description, queryClause) {
       val coll = dbCollectionFactory.getDBCollection(query)
-      val qb = queryBuilder(query, batchSize)
       try {
-        val cursor = qb.cursor[BSONDocument]
-        // Always apply batchSize *before* limit. If the caller passes a negative value to limit(),
-        // the driver applies it instead to batchSize. (A negative batchSize means, return one batch
-        // and close the cursor.) Then if we set batchSize, the negative "limit" is overwritten, and
-        // the query executes without a limit.
-        // http://api.mongodb.org/java/2.7.3/com/mongodb/DBCursor.html#limit(int)
-        //        batchSize.foreach(cursor batchSize _)
-        //        queryClause.lim.foreach(cursor.limit _)
-        //        queryClause.sk.foreach(cursor.skip _)
-        //        ord.foreach(cursor.sort _)
-        //        queryClause.maxScan.foreach(cursor addSpecial("$maxScan", _))
-        //        queryClause.comment.foreach(cursor addSpecial("$comment", _))
-        //        hnt.foreach(cursor hint _)
-        f(cursor)
+        //        val cursor = cursor
+        f(cursor[M, BSONDocument](query, batchSize))
       } catch {
         case e: Exception =>
           throw new RogueException("Mongo query on %s [%s] failed".format(
