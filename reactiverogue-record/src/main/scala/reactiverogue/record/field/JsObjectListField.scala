@@ -26,9 +26,13 @@ class JsObjectListField[OwnerType <: BsonRecord[OwnerType], T: Format](rec: Owne
   override def defaultValue: List[T] = Nil
   override def isOptional = true
 
+  def valueToBsonValue(v: T): BSONValue = {
+    BSONFormats.BSONDocumentFormat.reads(implicitly[Format[T]].writes(v)).get
+  }
+
   def asBSONValue: BSONValue =
     valueOpt.map(v =>
-      BSONArray(v.map(i => BSONFormats.BSONDocumentFormat.reads(implicitly[Format[T]].writes(i)).get)))
+      BSONArray(v.map(valueToBsonValue)))
       .getOrElse(BSONArray())
 
   def setFromBSONValue(value: BSONValue): Option[List[T]] = {

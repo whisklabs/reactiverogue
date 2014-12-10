@@ -10,12 +10,10 @@ import com.foursquare.field.{
 import com.foursquare.index.IndexBuilder
 import reactiverogue.core.MongoHelpers.{ AndCondition, MongoModify }
 import java.util.Date
-import reactiverogue.core.json.BSONFormats
 import reactiverogue.record.{ BsonRecord, MongoRecord, MongoMetaRecord, Field, MandatoryTypedField, OptionalTypedField }
 import reactiverogue.record.field._
 import reactiverogue.mongodb.BSONSerializable
 import reactivemongo.bson._
-import play.api.libs.json.{ Json, Format, Writes }
 import scala.language.implicitConversions
 
 trait LiftRogue extends Rogue {
@@ -106,11 +104,11 @@ trait LiftRogue extends Rogue {
   implicit def dateFieldToDateQueryField[M <: BsonRecord[M]](f: Field[java.util.Date, M]): DateQueryField[M] =
     new DateQueryField(f)
 
-  implicit def ccFieldToQueryField[M <: BsonRecord[M], F: Writes](f: JsObjectField[M, F]): JsonTypeQueryField[F, M] =
+  implicit def ccFieldToQueryField[M <: BsonRecord[M], F](f: JsObjectField[M, F]): JsonTypeQueryField[F, M] =
     new JsonTypeQueryField[F, M](f)
 
-  implicit def jsObjectListFieldToListQueryField[M <: BsonRecord[M], F: Format](f: JsObjectListField[M, F]): JsonTypeListQueryField[F, M] =
-    new JsonTypeListQueryField[F, M](liftField2Recordv2Field(f))
+  implicit def jsObjectListFieldToListQueryField[M <: BsonRecord[M], F](f: JsObjectListField[M, F]): JsonTypeListQueryField[F, M] =
+    new JsonTypeListQueryField[F, M](liftField2Recordv2Field(f), f.valueToBsonValue)
 
   implicit def doubleFieldtoNumericQueryField[M <: BsonRecord[M], F](f: Field[Double, M]): NumericQueryField[Double, M] =
     new NumericQueryField(f)
@@ -167,11 +165,11 @@ trait LiftRogue extends Rogue {
   implicit def dateFieldToDateModifyField[M <: BsonRecord[M]](f: Field[Date, M]): DateModifyField[M] =
     new DateModifyField(f)
 
-  implicit def jsObjectFieldToModifyField[M <: BsonRecord[M], V: Format](f: JsObjectField[M, V]): JsonTypeModifyField[V, M] =
-    new JsonTypeModifyField[V, M](liftField2Recordv2Field(f))
+  implicit def jsObjectFieldToModifyField[M <: BsonRecord[M], V](f: JsObjectField[M, V]): JsonTypeModifyField[V, M] =
+    new JsonTypeModifyField[V, M](liftField2Recordv2Field(f), f.valueToBsonValue)
 
-  implicit def jsObjectListFieldToListModifyField[M <: BsonRecord[M], V: Format](f: JsObjectListField[M, V]): JsonTypeListModifyField[V, M] =
-    new JsonTypeListModifyField[V, M](liftField2Recordv2Field(f))
+  implicit def jsObjectListFieldToListModifyField[M <: BsonRecord[M], V](f: JsObjectListField[M, V]): JsonTypeListModifyField[V, M] =
+    new JsonTypeListModifyField[V, M](liftField2Recordv2Field(f), f.valueToBsonValue)
 
   implicit def doubleFieldToNumericModifyField[M <: BsonRecord[M]](f: Field[Double, M]): NumericModifyField[Double, M] =
     new NumericModifyField(f)

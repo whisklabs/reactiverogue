@@ -8,8 +8,8 @@ object common {
 
   val commonSettings = Seq(
     organization := "com.whisk",
-    scalaVersion := "2.11.2",
-    crossScalaVersions := Seq("2.11.2", "2.10.4"),
+    scalaVersion := "2.11.4",
+    crossScalaVersions := Seq("2.11.4", "2.10.4"),
     gitHeadCommitSha := Process("git rev-parse --short HEAD").lines.head)
     
   def module(name: String) =
@@ -19,9 +19,7 @@ object common {
     .settings(
       scalacOptions ++= Seq("-feature", "-deprecation"),
       version := "0.1.0-" + gitHeadCommitSha.value,
-      resolvers ++= Seq(
-        "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
-         "typesafe" at "http://repo.typesafe.com/typesafe/releases/"),
+      resolvers += "typesafe" at "http://repo.typesafe.com/typesafe/releases/",
       publishTo := {
         val dir = if (version.value.trim.endsWith(gitHeadCommitSha.value)) "snapshots" else "releases"
         val repo = Path.userHome / "mvn-repo" / dir

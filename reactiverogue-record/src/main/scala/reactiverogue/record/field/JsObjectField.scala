@@ -23,9 +23,12 @@ abstract class JsObjectField[OwnerType <: BsonRecord[OwnerType], JObjectType: Fo
 
   def owner = rec
 
+  def valueToBsonValue(v: JObjectType): BSONDocument = {
+    BSONFormats.BSONDocumentFormat.reads(implicitly[Format[JObjectType]].writes(v)).get
+  }
+
   override def asBSONValue: BSONValue =
-    valueOpt.map(v =>
-      BSONFormats.BSONDocumentFormat.reads(implicitly[Format[JObjectType]].writes(v)).get).getOrElse(BSONUndefined)
+    valueOpt.map(valueToBsonValue).getOrElse(BSONUndefined)
 
   override def setFromBSONValue(value: BSONValue): Option[JObjectType] = {
     value match {

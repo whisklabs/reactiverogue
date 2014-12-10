@@ -9,7 +9,7 @@ import org.joda.time.DateTime
 import scala.util.matching.Regex
 import reactivemongo.bson._
 import reactiverogue.mongodb.BSONSerializable
-import play.api.libs.json.{ Format, Writes }
+import play.api.libs.json.{ Writes }
 import reactiverogue.core.json.BSONFormats
 import scala.language.higherKinds
 
@@ -273,13 +273,13 @@ class StringQueryField[F <: String, M](override val field: Field[F, M])
   override def valueToDB(v: F) = BSONString(v)
 }
 
-class JsonTypeQueryField[V: Writes, M](val field: Field[V, M]) {
+class JsonTypeQueryField[V, M](val field: Field[V, M]) {
   def unsafeField[F](name: String): SelectableDummyField[F, M] = {
     new SelectableDummyField[F, M](field.name + "." + name, field.owner)
   }
 }
 
-class BsonRecordQueryField[M, B](field: Field[B, M], asDBObject: B => BSONDocument, defaultValue: B)
+class BsonRecordQueryField[M, B](field: Field[B, M], asDBObject: B => BSONValue, defaultValue: B)
     extends AbstractQueryField[B, M](field) {
   override def valueToDB(b: B) = asDBObject(b)
 
@@ -337,17 +337,17 @@ class SeqQueryField[V: BSONSerializable, M](field: Field[Seq[V], M])
   override def valueToDB(v: V): BSONValue = BSONSerializable[V].asBSONValue(v)
 }
 
-class JsonTypeListQueryField[V: Writes, M](field: Field[List[V], M])
+class JsonTypeListQueryField[V, M](field: Field[List[V], M], f: V => BSONValue)
     extends AbstractListQueryField[V, V, M, List](field) {
-  override def valueToDB(v: V) = BSONFormats.BSONDocumentFormat.reads(implicitly[Writes[V]].writes(v)).get
+  override def valueToDB(v: V) = f(v)
 
   def unsafeField[F](name: String): SelectableDummyField[List[F], M] =
     new SelectableDummyField[List[F], M](field.name + "." + name, field.owner)
 }
 
-class BsonRecordListQueryField[M, B](field: Field[List[B], M], rec: B, asBSONDocument: B => BSONDocument)
+class BsonRecordListQueryField[M, B](field: Field[List[B], M], rec: B, asBSONValue: B => BSONValue)
     extends AbstractListQueryField[B, B, M, List](field) {
-  override def valueToDB(b: B) = asBSONDocument(b)
+  override def valueToDB(b: B) = asBSONValue(b)
 
   def subfield[V, V1](f: B => Field[V, B])(implicit ev: Rogue.Flattened[V, V1]): SelectableDummyField[List[V1], M] = {
     new SelectableDummyField[List[V1], M](field.name + "." + f(rec).name, field.owner)
@@ -445,8 +445,10 @@ class BsonRecordModifyField[M, B](field: Field[B, M], asDBDocument: B => BSONDoc
   override def valueToDB(b: B) = asDBDocument(b)
 }
 
-class JsonTypeModifyField[V: Writes, M](field: Field[V, M]) extends AbstractModifyField[V, M](field) {
-  override def valueToDB(v: V) = BSONFormats.BSONDocumentFormat.reads(implicitly[Writes[V]].writes(v)).get
+class JsonTypeModifyField[V, M](field: Field[V, M], asDBDocument: V => BSONDocument) extends AbstractModifyField[V, M](field) {
+  override def valueToDB(v: V) = {
+    asDBDocument(v)
+  }
 }
 
 class MapModifyField[V: BSONSerializable, M](field: Field[Map[String, V], M])
@@ -502,9 +504,9 @@ class ListModifyField[V: BSONSerializable, M](field: Field[List[V], M])
   override def valueToDB(v: V): BSONValue = BSONSerializable[V].asBSONValue(v)
 }
 
-class JsonTypeListModifyField[V: Writes, M](field: Field[List[V], M])
+class JsonTypeListModifyField[V, M](field: Field[List[V], M], f: V => BSONValue)
     extends AbstractListModifyField[V, M, List](field) {
-  override def valueToDB(v: V) = BSONFormats.BSONDocumentFormat.reads(implicitly[Writes[V]].writes(v)).get
+  override def valueToDB(v: V) = f(v)
 }
 
 class EnumerationListModifyField[V <: Enumeration#Value, M](field: Field[List[V], M])
