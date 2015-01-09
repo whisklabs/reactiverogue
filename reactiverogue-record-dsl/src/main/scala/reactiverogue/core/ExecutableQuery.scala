@@ -108,7 +108,7 @@ case class ExecutableQuery[MB, M <: MB, R, State](
    * "limit", or "select" clauses. Sends the delete operation to mongo, and waits for the
    * delete operation to complete before returning to the caller.
    */
-  def bulkDelete_!!(concern: GetLastError)(implicit ev1: Required[State, Unselected with Unlimited with Unskipped], ec: ExecutionContext): Unit =
+  def bulkDelete_!!(concern: GetLastError)(implicit ev1: Required[State, Unselected with Unlimited with Unskipped], ec: ExecutionContext): Future[LastError] =
     db.bulkDelete_!!(query, concern)
 
   /**
