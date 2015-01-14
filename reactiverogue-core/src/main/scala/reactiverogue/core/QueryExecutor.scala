@@ -2,6 +2,7 @@
 
 package reactiverogue.core
 
+import com.foursquare.field.Field
 import play.api.libs.iteratee.{ Iteratee, Enumerator }
 import reactiverogue.core.MongoHelpers.{ MongoModify, MongoSelect }
 import reactivemongo.core.commands.GetLastError
@@ -48,15 +49,18 @@ trait QueryExecutor[MB] extends Rogue {
   //    }
   //  }
   //
-  //  def distinct[M <: MB, V, State](query: Query[M, _, State])
-  //                                 (field: M => Field[V, M])
-  //                                 (implicit ev: ShardingOk[M, State]): List[V] = {
-  //    if (optimizer.isEmptyQuery(query)) {
-  //      Nil
-  //    } else {
-  //      adapter.distinct(query, field(query.meta).name)
-  //    }
-  //  }
+  def distinct[M <: MB, V, State](query: Query[M, _, State])(f1: M => SelectField[V, _])(implicit ev: ShardingOk[M, State], ec: ExecutionContext): Future[List[V]] = {
+    if (optimizer.isEmptyQuery(query)) {
+      Future.successful(Nil)
+    } else {
+      val inst = query.meta
+      val fields = List(f1(inst).asInstanceOf[SelectField[V, M]])
+      val key = f1(query.meta).field.name
+      val _transformer = (xs: List[_]) => xs(0).asInstanceOf[V]
+      val s = serializer[M, V](inst, Some(MongoSelect(fields, _transformer)))
+      adapter.distinct(query, key, s)
+    }
+  }
 
   def fetch[M <: MB, R, State](query: Query[M, R, State])(implicit ev: ShardingOk[M, State], ec: ExecutionContext): Future[List[R]] = {
     if (optimizer.isEmptyQuery(query)) {

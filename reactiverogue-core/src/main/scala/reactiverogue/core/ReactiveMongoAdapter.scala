@@ -77,23 +77,42 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
   //    }
   //  }
 
-  //  def distinct[M <: MB, R](query: Query[M, _, _],
-  //                           key: String): List[R] = {
-  //    val queryClause = transformer.transformQuery(query)
-  //    validator.validateQuery(queryClause)
-  //    val cnd = buildCondition(queryClause.condition)
-  //
-  //    // TODO: fix this so it looks like the correct mongo shell command
-  //    val description = buildConditionString("distinct", query.collectionName, queryClause)
-  //
-  //    runCommand(description, queryClause) {
-  //      val coll = dbCollectionFactory.getDBCollection(query)
-  //      val rv = new ListBuffer[R]
-  //      val rj = coll.distinct(key, cnd)
-  //      for (i <- 0 until rj.size) rv += rj.get(i).asInstanceOf[R]
-  //      rv.toList
-  //    }
+  //  def selectCase[F1, CC, S2](f1: M => SelectField[F1, M],
+  //                             create: F1 => CC)(implicit ev: AddSelect[State, _, S2]): Query[M, CC, S2] = {
+  //    val inst = meta
+  //    val fields = List(f1(inst))
+  //    val transformer = (xs: List[_]) => create(xs(0).asInstanceOf[F1])
+  //    this.copy(select = Some(MongoSelect(fields, transformer)))
   //  }
+
+  def distinct[M <: MB, R](query: Query[M, _, _], key: String, s: RogueSerializer[R])(implicit ec: ExecutionContext): Future[List[R]] = {
+    val queryClause = transformer.transformQuery(query)
+    validator.validateQuery(queryClause)
+    val cnd = buildCondition(queryClause.condition)
+
+    // TODO: fix this so it looks like the correct mongo shell command
+    val description = buildConditionString("distinct", query.collectionName, queryClause)
+
+    runCommand(description, queryClause) {
+      val coll = dbCollectionFactory.getDBCollection(query)
+      val command = reactivemongo.core.commands.RawCommand(
+        BSONDocument(
+          "distinct" -> coll.name,
+          "key" -> key,
+          "query" -> cnd))
+
+      coll.db.command(command).map { bson =>
+        val values: List[BSONValue] = bson.getAs[BSONArray]("values").toList.flatMap(_.values)
+        val first :: rest = key.split("\\.").toList
+        val docFunc: BSONValue => BSONDocument =
+          rest.foldLeft[BSONValue => BSONDocument](v => BSONDocument(first -> v)) {
+            case (func, keyPart) =>
+              func.andThen(d => BSONDocument(keyPart -> d))
+          }
+        values.map(docFunc andThen s.fromBSONDocument)
+      }
+    }
+  }
 
   def delete[M <: MB](query: Query[M, _, _], writeConcern: GetLastError)(implicit ec: ExecutionContext): Future[LastError] = {
     val queryClause = transformer.transformQuery(query)

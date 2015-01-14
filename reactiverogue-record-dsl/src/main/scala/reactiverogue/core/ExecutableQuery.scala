@@ -28,12 +28,13 @@ case class ExecutableQuery[MB, M <: MB, R, State](
   //  def countDistinct[V](field: M => Field[V, _]): Long =
   //    db.countDistinct(query)(field.asInstanceOf[M => Field[V, M]])
   //
-  //  /**
-  //   * Returns a list of distinct values returned by a query. The query must not have
-  //   * limit or skip clauses.
-  //   */
-  //  def distinct[V](field: M => Field[V, _]): List[V] =
-  //    db.distinct(query)(field.asInstanceOf[M => Field[V, M]])
+  /**
+   * Returns a list of distinct values returned by a query. The query must not have
+   * limit or skip clauses.
+   */
+  def distinct[V](field: M => SelectField[V, _])(implicit ec: ExecutionContext): Future[List[V]] = {
+    db.distinct(query)(field)
+  }
 
   /**
    * Checks if there are any records that match this query.

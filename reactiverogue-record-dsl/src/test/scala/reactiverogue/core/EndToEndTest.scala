@@ -391,14 +391,15 @@ class EndToEndTest extends JUnitMustMatchers {
     //    q.skip(8).limit(4).count().result() must_== 2
   }
 
-  //  @Test
-  //  def testDistinct {
-  //    (1 to 5).foreach(_ => baseTestVenue().userid(1).save)
-  //    (1 to 5).foreach(_ => baseTestVenue().userid(2).save)
-  //    (1 to 5).foreach(_ => baseTestVenue().userid(3).save)
-  //    Venue.where(_.mayor eqs 789).distinct(_.userid).length must_== 3
-  //    Venue.where(_.mayor eqs 789).countDistinct(_.userid) must_== 3
-  //  }
+  @Test
+  def testDistinct {
+    import reactiverogue.core.LiftRogue.mandatoryFieldToSelectField
+    (1 to 5).foreach(_ => baseTestVenue().userid(1).save)
+    (1 to 5).foreach(_ => baseTestVenue().userid(2).save)
+    (1 to 5).foreach(_ => baseTestVenue().userid(3).save)
+    Venue.where(_.mayor eqs 789).distinct(_.userid).result().length must_== 3
+    //      Venue.where(_.mayor eqs 789).countDistinct(_.userid) must_== 3
+  }
 
   @Test
   def testSlice {
