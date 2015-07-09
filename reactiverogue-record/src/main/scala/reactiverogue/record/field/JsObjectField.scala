@@ -15,7 +15,7 @@ package reactiverogue.record
 package field
 
 import play.api.libs.json._
-import reactiverogue.core.json.BSONFormats
+import play.modules.reactivemongo.json.BSONFormats
 import reactivemongo.bson.{ BSONDocument, BSONUndefined, BSONValue }
 
 abstract class JsObjectField[OwnerType <: BsonRecord[OwnerType], JObjectType: Format](rec: OwnerType)

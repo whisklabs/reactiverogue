@@ -14,7 +14,7 @@
 package reactiverogue.mongodb
 
 import reactivemongo.api._
-import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.api.collections.bson.BSONCollection
 
 /*
 * This is used by both MongoDocumentMeta and MongoMetaRecord

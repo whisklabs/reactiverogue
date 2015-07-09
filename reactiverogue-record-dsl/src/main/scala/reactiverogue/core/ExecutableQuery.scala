@@ -2,13 +2,11 @@ package reactiverogue.core
 
 // Copyright 2012 Foursquare Labs Inc. All Rights Reserved.
 
-import com.foursquare.field.Field
 import play.api.libs.iteratee.Enumerator
+import reactivemongo.api.commands.{ WriteConcern, WriteResult }
 import reactiverogue.core.MongoHelpers.MongoSelect
-import reactiverogue.core.Rogue._
-import concurrent.{ Future, ExecutionContext }
-import reactivemongo.core.commands.GetLastError
-import reactivemongo.core.commands.LastError
+
+import scala.concurrent.{ ExecutionContext, Future }
 
 case class ExecutableQuery[MB, M <: MB, R, State](
     query: Query[M, R, State],
@@ -101,7 +99,7 @@ case class ExecutableQuery[MB, M <: MB, R, State](
    * "limit", or "select" clauses. Sends the delete operation to mongo, and returns - does
    * <em>not</em> wait for the delete to be finished.
    */
-  def bulkDelete_!!!()(implicit ev1: Required[State, Unselected with Unlimited with Unskipped], ec: ExecutionContext): Future[LastError] =
+  def bulkDelete_!!!()(implicit ev1: Required[State, Unselected with Unlimited with Unskipped], ec: ExecutionContext): Future[WriteResult] =
     db.bulkDelete_!!(query)
 
   /**
@@ -109,7 +107,7 @@ case class ExecutableQuery[MB, M <: MB, R, State](
    * "limit", or "select" clauses. Sends the delete operation to mongo, and waits for the
    * delete operation to complete before returning to the caller.
    */
-  def bulkDelete_!!(concern: GetLastError)(implicit ev1: Required[State, Unselected with Unlimited with Unskipped], ec: ExecutionContext): Future[LastError] =
+  def bulkDelete_!!(concern: WriteConcern)(implicit ev1: Required[State, Unselected with Unlimited with Unskipped], ec: ExecutionContext): Future[WriteResult] =
     db.bulkDelete_!!(query, concern)
 
   /**
@@ -135,22 +133,22 @@ case class ExecutableQuery[MB, M <: MB, R, State](
 
 case class ExecutableModifyQuery[MB, M <: MB, State](query: ModifyQuery[M, State],
     db: QueryExecutor[MB]) {
-  def updateMulti()(implicit ec: ExecutionContext): Future[LastError] =
+  def updateMulti()(implicit ec: ExecutionContext): Future[WriteResult] =
     db.updateMulti(query)
 
-  def updateOne()(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Future[LastError] =
+  def updateOne()(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Future[WriteResult] =
     db.updateOne(query)
 
-  def upsertOne()(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Future[LastError] =
+  def upsertOne()(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Future[WriteResult] =
     db.upsertOne(query)
 
-  def updateMulti(writeConcern: GetLastError)(implicit ec: ExecutionContext): Future[LastError] =
+  def updateMulti(writeConcern: WriteConcern)(implicit ec: ExecutionContext): Future[WriteResult] =
     db.updateMulti(query, writeConcern)
 
-  def updateOne(writeConcern: GetLastError)(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Future[LastError] =
+  def updateOne(writeConcern: WriteConcern)(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Future[WriteResult] =
     db.updateOne(query, writeConcern)
 
-  def upsertOne(writeConcern: GetLastError)(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Future[LastError] =
+  def upsertOne(writeConcern: WriteConcern)(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Future[WriteResult] =
     db.upsertOne(query, writeConcern)
 }
 

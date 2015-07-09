@@ -3,8 +3,8 @@
 package reactiverogue.core
 
 import com.foursquare.index.MongoIndex
+import reactivemongo.api.commands.WriteConcern
 import reactivemongo.bson._
-import reactivemongo.core.commands.GetLastError
 
 case class Degrees(value: Double)
 case class Radians(value: Double)
@@ -85,11 +85,11 @@ object QueryHelpers {
   var transformer: QueryTransformer = NoopQueryTransformer
 
   trait QueryConfig {
-    def defaultWriteConcern: GetLastError
+    def defaultWriteConcern: WriteConcern
   }
 
   class DefaultQueryConfig extends QueryConfig {
-    override def defaultWriteConcern = GetLastError()
+    override def defaultWriteConcern = WriteConcern.Default
   }
 
   object DefaultQueryConfig extends DefaultQueryConfig

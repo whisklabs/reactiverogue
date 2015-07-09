@@ -16,9 +16,10 @@
 
 package reactiverogue.record
 
-import reactivemongo.core.commands.{ GetLastError, LastError }
+import reactivemongo.api.commands.{ WriteConcern, WriteResult }
 import reactiverogue.record.field.ObjectIdPk
-import concurrent.{ ExecutionContext, Future }
+
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait MongoRecord[MyType <: MongoRecord[MyType]] extends BsonRecord[MyType] with ObjectIdPk[MyType] {
   self: MyType =>
@@ -31,16 +32,8 @@ trait MongoRecord[MyType <: MongoRecord[MyType]] extends BsonRecord[MyType] with
   /**
    * Save the instance and return the instance
    */
-  def save(concern: GetLastError)(implicit ec: ExecutionContext): Future[LastError] = {
+  def save(concern: WriteConcern)(implicit ec: ExecutionContext): Future[WriteResult] = {
     meta.save(this, concern)
-  }
-
-  /**
-   * Save the instance and return the instance
-   * @param safe - if true will use GetLastError SAFE else NORMAL
-   */
-  def save(safe: Boolean)(implicit ec: ExecutionContext): Future[LastError] = {
-    save(if (safe) GetLastError(j = true) else GetLastError())
   }
 
   /**
@@ -48,11 +41,11 @@ trait MongoRecord[MyType <: MongoRecord[MyType]] extends BsonRecord[MyType] with
    * WILL NOT RAISE MONGO SERVER ERRORS.
    * Use save(Boolean) or save(GetLastError) to control error behavior
    */
-  def save(implicit ec: ExecutionContext): Future[LastError] = save(false)
+  def save(implicit ec: ExecutionContext): Future[WriteResult] = save(WriteConcern.Default)
 
   /**
    * Delete the instance from backing store
    */
-  def delete_!(implicit ec: ExecutionContext): Future[LastError] =
+  def delete_!(implicit ec: ExecutionContext): Future[WriteResult] =
     meta.delete_!(this)
 }

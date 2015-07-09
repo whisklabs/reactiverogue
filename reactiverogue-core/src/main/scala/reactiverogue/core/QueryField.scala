@@ -9,8 +9,6 @@ import org.joda.time.DateTime
 import scala.util.matching.Regex
 import reactivemongo.bson._
 import reactiverogue.mongodb.BSONSerializable
-import play.api.libs.json.{ Writes }
-import reactiverogue.core.json.BSONFormats
 import scala.language.higherKinds
 
 object CondOps extends Enumeration {

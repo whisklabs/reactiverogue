@@ -2,11 +2,12 @@
 
 package reactiverogue.core
 
+import reactivemongo.api.collections.bson.BSONCollection
+import reactivemongo.api.commands.{ DefaultWriteResult, WriteResult, WriteConcern }
 import reactiverogue.core.Rogue._
 import reactiverogue.core.Iter._
 import reactivemongo.bson._
 import reactivemongo.api._
-import reactivemongo.api.collections.default._
 import reactivemongo.core.commands._
 import scala.concurrent.{ Future, ExecutionContext }
 import play.api.libs.iteratee.Iteratee
@@ -114,7 +115,7 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
     }
   }
 
-  def delete[M <: MB](query: Query[M, _, _], writeConcern: GetLastError)(implicit ec: ExecutionContext): Future[LastError] = {
+  def delete[M <: MB](query: Query[M, _, _], writeConcern: WriteConcern)(implicit ec: ExecutionContext): Future[WriteResult] = {
     val queryClause = transformer.transformQuery(query)
     validator.validateQuery(queryClause)
     val cnd = buildCondition(queryClause.condition)
@@ -129,7 +130,7 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
   def modify[M <: MB](mod: ModifyQuery[M, _],
     upsert: Boolean,
     multi: Boolean,
-    writeConcern: GetLastError)(implicit ec: ExecutionContext): Future[LastError] = {
+    writeConcern: WriteConcern)(implicit ec: ExecutionContext): Future[WriteResult] = {
     val modClause = transformer.transformModify(mod)
     validator.validateModify(modClause)
     if (modClause.mod.clauses.nonEmpty) {
@@ -142,7 +143,7 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
         coll.update(q, m, writeConcern, upsert, multi)
       }
     } else {
-      Future.successful(EmptyResult)
+      Future.successful(DefaultWriteResult(ok = true, n = 0, Seq(), None, None, None))
     }
   }
 
@@ -152,7 +153,7 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
     remove: Boolean)(f: BSONDocument => R)(implicit ec: ExecutionContext): Future[Option[R]] = {
     val modClause = transformer.transformFindAndModify(mod)
     validator.validateFindAndModify(modClause)
-    if (!modClause.mod.clauses.isEmpty || remove) {
+    if (modClause.mod.clauses.nonEmpty || remove) {
       val query = modClause.query
       val cnd = buildCondition(query.condition)
       val ord = query.order.map(buildOrder)
@@ -178,7 +179,7 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
     }
   }
 
-  def queryBuilder[M <: MB](query: Query[M, _, _], batchSize: Option[Int])(implicit ec: ExecutionContext): GenericQueryBuilder[BSONDocument, BSONDocumentReader, BSONDocumentWriter] = {
+  def queryBuilder[M <: MB](query: Query[M, _, _], batchSize: Option[Int])(implicit ec: ExecutionContext): GenericQueryBuilder[BSONSerializationPack.type] = {
 
     val queryClause = transformer.transformQuery(query)
     validator.validateQuery(queryClause)
@@ -197,8 +198,8 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
   def cursor[M <: MB, T: BSONDocumentReader](query: Query[M, _, _], batchSize: Option[Int])(implicit ec: ExecutionContext): Cursor[T] = {
     val qb = queryBuilder(query, batchSize)
     query.readPreference match {
-      case Some(rp) => qb.cursor(rp)
-      case None => qb.cursor[T]
+      case Some(rp) => qb.cursor[T](rp)
+      case None => qb.cursor[T]()
     }
   }
 

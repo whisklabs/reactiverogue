@@ -18,7 +18,7 @@ package reactiverogue.mongodb
 
 import java.util.concurrent.ConcurrentHashMap
 import reactivemongo.api._
-import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.api.collections.bson.BSONCollection
 import concurrent.ExecutionContext.Implicits.global
 import concurrent.duration.FiniteDuration
 import reactivemongo.core.nodeset.Authenticate
@@ -29,7 +29,7 @@ import scala.util.{ Failure, Success }
 */
 trait MongoIdentifier {
   def jndiName: String
-  override def toString() = "MongoIdentifier(" + jndiName + ")"
+  override def toString = "MongoIdentifier(" + jndiName + ")"
   override def hashCode() = jndiName.hashCode()
   override def equals(other: Any): Boolean = other match {
     case mi: MongoIdentifier => mi.jndiName == this.jndiName
@@ -176,7 +176,7 @@ object MongoDB {
     useSession(DefaultMongoIdentifier)(f)
 
   //
-  def close: Unit = {
-    dbs.clear
+  def close(): Unit = {
+    dbs.clear()
   }
 }

@@ -2,14 +2,13 @@
 
 package reactiverogue.core
 
-import com.foursquare.field.Field
-import play.api.libs.iteratee.{ Iteratee, Enumerator }
+import play.api.libs.iteratee.{ Enumerator, Iteratee }
+import reactivemongo.api.commands.{ DefaultWriteResult, WriteResult, WriteConcern }
+import reactivemongo.bson.{ BSONDocument, BSONDocumentReader }
+import reactivemongo.core.commands.{ GetLastError, LastError }
 import reactiverogue.core.MongoHelpers.{ MongoModify, MongoSelect }
-import reactivemongo.core.commands.GetLastError
-import reactivemongo.bson.BSONDocument
-import scala.concurrent.{ Future, ExecutionContext }
-import reactivemongo.bson.BSONDocumentReader
-import reactivemongo.core.commands.LastError
+
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait RogueSerializer[R] extends BSONDocumentReader[R] {
   def fromBSONDocument(doc: BSONDocument): R
@@ -21,11 +20,14 @@ trait QueryExecutor[MB] extends Rogue {
   def adapter: ReactiveMongoAdapter[MB]
   def optimizer: QueryOptimizer
 
-  def defaultWriteConcern: GetLastError
+  def defaultWriteConcern: WriteConcern
 
   val EmptyResult =
     LastError(ok = true, err = None, code = None, errMsg = None,
       originalDocument = None, updated = 0, updatedExisting = false)
+
+  val EmptyWriteResult =
+    DefaultWriteResult(ok = true, n = 0, writeErrors = Seq(), writeConcernError = None, code = None, errmsg = None)
 
   protected def serializer[M <: MB, R](
     meta: M,
@@ -106,8 +108,8 @@ trait QueryExecutor[MB] extends Rogue {
   }
 
   def bulkDelete_!![M <: MB, State](query: Query[M, _, State],
-    writeConcern: GetLastError = defaultWriteConcern)(implicit ev1: Required[State, Unselected with Unlimited with Unskipped],
-      ev2: ShardingOk[M, State], ec: ExecutionContext): Future[LastError] = {
+    writeConcern: WriteConcern = defaultWriteConcern)(implicit ev1: Required[State, Unselected with Unlimited with Unskipped],
+      ev2: ShardingOk[M, State], ec: ExecutionContext): Future[WriteResult] = {
     if (optimizer.isEmptyQuery(query)) {
       Future.failed(new Exception("empty"))
     } else {
@@ -117,9 +119,9 @@ trait QueryExecutor[MB] extends Rogue {
 
   def updateOne[M <: MB, State](
     query: ModifyQuery[M, State],
-    writeConcern: GetLastError = defaultWriteConcern)(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Future[LastError] = {
+    writeConcern: WriteConcern = defaultWriteConcern)(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Future[WriteResult] = {
     if (optimizer.isEmptyQuery(query)) {
-      Future.successful(EmptyResult)
+      Future.successful(EmptyWriteResult)
     } else {
       adapter.modify(query, upsert = false, multi = false, writeConcern = writeConcern)
     }
@@ -127,9 +129,9 @@ trait QueryExecutor[MB] extends Rogue {
 
   def upsertOne[M <: MB, State](
     query: ModifyQuery[M, State],
-    writeConcern: GetLastError = defaultWriteConcern)(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Future[LastError] = {
+    writeConcern: WriteConcern = defaultWriteConcern)(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Future[WriteResult] = {
     if (optimizer.isEmptyQuery(query)) {
-      Future.successful(EmptyResult)
+      Future.successful(EmptyWriteResult)
     } else {
       adapter.modify(query, upsert = true, multi = false, writeConcern = writeConcern)
     }
@@ -137,9 +139,9 @@ trait QueryExecutor[MB] extends Rogue {
 
   def updateMulti[M <: MB, State](
     query: ModifyQuery[M, State],
-    writeConcern: GetLastError = defaultWriteConcern)(implicit ec: ExecutionContext): Future[LastError] = {
+    writeConcern: WriteConcern = defaultWriteConcern)(implicit ec: ExecutionContext): Future[WriteResult] = {
     if (optimizer.isEmptyQuery(query)) {
-      Future.successful(EmptyResult)
+      Future.successful(EmptyWriteResult)
     } else {
       adapter.modify(query, upsert = false, multi = true, writeConcern = writeConcern)
     }
@@ -147,8 +149,7 @@ trait QueryExecutor[MB] extends Rogue {
 
   def findAndUpdateOne[M <: MB, R](
     query: FindAndModifyQuery[M, R],
-    returnNew: Boolean = false,
-    writeConcern: GetLastError = defaultWriteConcern)(implicit ec: ExecutionContext): Future[Option[R]] = {
+    returnNew: Boolean = false)(implicit ec: ExecutionContext): Future[Option[R]] = {
     if (optimizer.isEmptyQuery(query)) {
       Future.successful(None)
     } else {
@@ -159,8 +160,7 @@ trait QueryExecutor[MB] extends Rogue {
 
   def findAndUpsertOne[M <: MB, R](
     query: FindAndModifyQuery[M, R],
-    returnNew: Boolean = false,
-    writeConcern: GetLastError = defaultWriteConcern)(implicit ec: ExecutionContext): Future[Option[R]] = {
+    returnNew: Boolean = false)(implicit ec: ExecutionContext): Future[Option[R]] = {
     if (optimizer.isEmptyQuery(query)) {
       Future.successful(None)
     } else {
@@ -170,8 +170,7 @@ trait QueryExecutor[MB] extends Rogue {
   }
 
   def findAndDeleteOne[M <: MB, R, State](
-    query: Query[M, R, State],
-    writeConcern: GetLastError = defaultWriteConcern)(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Future[Option[R]] = {
+    query: Query[M, R, State])(implicit ev: RequireShardKey[M, State], ec: ExecutionContext): Future[Option[R]] = {
     if (optimizer.isEmptyQuery(query)) {
       Future.successful(None)
     } else {

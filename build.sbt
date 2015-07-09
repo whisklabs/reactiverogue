@@ -19,8 +19,8 @@ lazy val record =
     .dependsOn(core)
     .settings(
       libraryDependencies ++= recordDependencies)
-    
-lazy val dsl =
+
+lazy val recordDsl =
   module("reactiverogue-record-dsl")
     .dependsOn(record)
     .settings(

@@ -2,13 +2,12 @@
 
 package reactiverogue.core
 
+import reactivemongo.api.collections.bson.BSONCollection
+import reactivemongo.bson._
 import reactiverogue.core.MongoHelpers.MongoSelect
-import reactiverogue.record.{ BsonRecord, BsonMetaRecord, MongoRecord, MongoMetaRecord }
 import reactiverogue.mongodb.MongoDB
 import reactiverogue.record.field.BsonRecordField
-import reactivemongo.bson._
-import reactivemongo.api._
-import reactivemongo.api.collections.default._
+import reactiverogue.record.{ BsonRecord, MongoMetaRecord, MongoRecord }
 
 object LiftDBCollectionFactory extends DBCollectionFactory[MongoRecord[_] with MongoMetaRecord[_]] {
   override def getDBCollection[M <: MongoRecord[_] with MongoMetaRecord[_]](query: Query[M, _, _]): BSONCollection = {

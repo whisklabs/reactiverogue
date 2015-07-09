@@ -17,8 +17,8 @@
 package reactiverogue.record
 
 import reactiverogue.mongodb._
+import reactivemongo.api.commands.{ WriteResult, WriteConcern }
 import reactivemongo.bson._
-import reactivemongo.core.commands.{ GetLastError, LastError }
 import concurrent.{ ExecutionContext, Future }
 
 trait MongoMetaRecord[BaseRecord <: MongoRecord[BaseRecord]]
@@ -29,22 +29,22 @@ trait MongoMetaRecord[BaseRecord <: MongoRecord[BaseRecord]]
   /**
    * Delete the instance from backing store
    */
-  def delete_!(inst: BaseRecord)(implicit ec: ExecutionContext): Future[LastError] = {
+  def delete_!(inst: BaseRecord)(implicit ec: ExecutionContext): Future[WriteResult] = {
     useColl(coll =>
-      coll.remove(BSONDocument("_id" -> inst.id.value), GetLastError(), true))
+      coll.remove(BSONDocument("_id" -> inst.id.value), WriteConcern.Default, true))
   }
 
-  def bulkDelete_!!(qry: BSONDocument)(implicit ec: ExecutionContext): Future[LastError] = {
+  def bulkDelete_!!(qry: BSONDocument)(implicit ec: ExecutionContext): Future[WriteResult] = {
     useColl(coll =>
-      coll.remove(qry, GetLastError(), false))
+      coll.remove(qry, WriteConcern.Default, false))
   }
 
   /**
    * Save the instance in the appropriate backing store
    */
-  def save(inst: BaseRecord, concern: GetLastError)(implicit ec: ExecutionContext): Future[LastError] = {
+  def save(inst: BaseRecord, concern: WriteConcern)(implicit ec: ExecutionContext): Future[WriteResult] = {
     useColl(coll =>
-      coll.save(inst.asBSONDocument, concern))
+      coll.insert(inst.asBSONDocument, concern))
   }
 
 }

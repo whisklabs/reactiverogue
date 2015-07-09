@@ -2,11 +2,11 @@
 
 package reactiverogue.core
 
+import play.api.libs.json.Json
+import play.modules.reactivemongo.json.BSONFormats
 import reactivemongo.bson._
 import scala.collection.immutable.ListMap
 import collection.mutable.ListBuffer
-import reactiverogue.core.json.BSONFormats
-import play.api.libs.json.Json
 
 object MongoHelpers extends Rogue {
   case class AndCondition(clauses: List[QueryClause[_]], orCondition: Option[OrCondition]) {
