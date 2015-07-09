@@ -43,8 +43,13 @@ trait MongoMetaRecord[BaseRecord <: MongoRecord[BaseRecord]]
    * Save the instance in the appropriate backing store
    */
   def save(inst: BaseRecord, concern: WriteConcern)(implicit ec: ExecutionContext): Future[WriteResult] = {
-    useColl(coll =>
-      coll.insert(inst.asBSONDocument, concern))
+    useColl { coll =>
+      inst.id.valueOpt match {
+        case None => coll.insert(inst.asBSONDocument, concern)
+        case Some(id) => coll.update(BSONDocument(Seq("_id" -> id)), update = inst.asBSONDocument, upsert = true)
+      }
+
+    }
   }
 
 }
