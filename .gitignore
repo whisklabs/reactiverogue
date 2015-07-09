@@ -3,3 +3,4 @@ project/sbt-launch-*.jar
 *.log
 dependencies/
 mongo-testdb/
+.idea/
