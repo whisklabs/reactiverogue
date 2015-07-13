@@ -55,11 +55,7 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
 
     runCommand(description, queryClause) {
       val coll = dbCollectionFactory.getDBCollection(query)
-      val db = coll.db
-
-      val cmd = Count(query.collectionName, query = Some(condition))
-
-      db.command(cmd)
+      coll.count(selector = Some(condition))
     }
   }
 
