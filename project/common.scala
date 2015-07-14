@@ -18,8 +18,7 @@ object common {
     .settings(scalariformSettings:_*)
     .settings(
       scalacOptions ++= Seq("-feature", "-deprecation"),
-      version := "0.2.0-" + gitHeadCommitSha.value,
-      resolvers += "typesafe" at "http://repo.typesafe.com/typesafe/releases/",
+      version := "0.3.0-" + gitHeadCommitSha.value,
       publishTo := {
         val dir = if (version.value.trim.endsWith(gitHeadCommitSha.value)) "snapshots" else "releases"
         val repo = Path.userHome / "mvn-repo" / dir

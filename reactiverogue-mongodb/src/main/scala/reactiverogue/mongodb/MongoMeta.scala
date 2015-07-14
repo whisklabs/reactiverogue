@@ -35,6 +35,6 @@ trait MongoMeta[BaseDocument] {
   /*
    * Use the db associated with this Meta.
    */
-  def useDb[T](f: DB => T) = MongoDB.use(mongoIdentifier)(f)
+  def useDb[T](f: DefaultDB => T) = MongoDB.use(mongoIdentifier)(f)
 }
 

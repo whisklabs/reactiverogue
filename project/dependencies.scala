@@ -6,9 +6,9 @@ object dependencies {
     val Reactivemongo = "0.11.2"
   }
 
-  val playJson = "com.typesafe.play" %% "play-json" % "2.3.9"
+  val playJson = "com.typesafe.play" %% "play-json" % "2.4.2"
   val reactiveMongo = "org.reactivemongo" %% "reactivemongo" % V.Reactivemongo
-  val playReactivemongo = "org.reactivemongo" %% "play2-reactivemongo" % "0.11.2.play23"
+  val playReactivemongo = "org.reactivemongo" %% "play2-reactivemongo" % "0.11.2.play24"
 
   val jodaTime = "joda-time" % "joda-time" % "2.8.1"
   val jodaConvert = "org.joda" % "joda-convert" % "1.7"
