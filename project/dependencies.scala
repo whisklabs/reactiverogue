@@ -3,12 +3,12 @@ import sbt._
 object dependencies {
 
   object V {
-    val Reactivemongo = "0.11.2"
+    val Reactivemongo = "0.11.3"
   }
 
   val playJson = "com.typesafe.play" %% "play-json" % "2.4.2"
   val reactiveMongo = "org.reactivemongo" %% "reactivemongo" % V.Reactivemongo
-  val playReactivemongo = "org.reactivemongo" %% "play2-reactivemongo" % "0.11.2.play24"
+  val playReactivemongo = "org.reactivemongo" %% "play2-reactivemongo" % "0.11.3.play24"
 
   val jodaTime = "joda-time" % "joda-time" % "2.8.1"
   val jodaConvert = "org.joda" % "joda-convert" % "1.7"
