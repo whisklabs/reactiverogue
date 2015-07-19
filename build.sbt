@@ -3,6 +3,8 @@ import common._
 
 commonSettings
 
+packagedArtifacts in file(".") := Map.empty
+
 lazy val mongodb =
   module("reactiverogue-mongodb")
     .settings(
