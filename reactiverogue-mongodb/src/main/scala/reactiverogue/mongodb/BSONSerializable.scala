@@ -36,6 +36,8 @@ object BSONSerializable {
 
     override def fromBSONValue = {
       case BSONInteger(v) => v
+      case BSONDouble(v) => v.toInt
+      case BSONLong(v) => v.toInt
     }
   }
 
@@ -44,6 +46,8 @@ object BSONSerializable {
 
     override def fromBSONValue = {
       case BSONLong(v) => v
+      case BSONInteger(v) => v.toLong
+      case BSONDouble(v) => v.toLong
     }
   }
 
@@ -52,6 +56,8 @@ object BSONSerializable {
 
     override def fromBSONValue = {
       case BSONDouble(v) => v
+      case BSONInteger(v) => v.toDouble
+      case BSONLong(v) => v.toDouble
     }
   }
 
