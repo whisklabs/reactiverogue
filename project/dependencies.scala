@@ -13,6 +13,8 @@ object dependencies {
   val junit = "junit" % "junit" % "4.12"
   val junitInterface = "com.novocode" % "junit-interface" % "0.6"
   val specs2 = "org.specs2" %% "specs2-junit" % "2.3.11"
+  val scalatest = "org.scalatest" %% "scalatest" % "2.2.5"
+  val dockerIt = "com.whisk" %% "docker-it-scala" % "0.2.0"
 
   val bsonDependencies =
     Seq(reactivemongoBson)
@@ -24,5 +26,5 @@ object dependencies {
     Seq(reactivemongo)
 
   val recordDslDependencies =
-    Seq(junit % "test", specs2 % "test", junitInterface % "test")
+    Seq(junit % "test", specs2 % "test", junitInterface % "test", scalatest % "test", dockerIt % "test")
 }

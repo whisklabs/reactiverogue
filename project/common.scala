@@ -24,6 +24,7 @@ object common {
     .settings(commonSettings:_*)
     .settings(scalariformSettings:_*)
     .settings(
+      resolvers += "Whisk" at "https://dl.bintray.com/whisk/maven",
       scalacOptions ++= Seq("-feature", "-deprecation")
     )
 }

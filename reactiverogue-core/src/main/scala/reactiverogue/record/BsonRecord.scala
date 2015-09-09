@@ -16,8 +16,11 @@
 
 package reactiverogue.record
 
+import play.api.libs.json.Json
 import reactiverogue.bson._
 import java.util.regex.Pattern
+import reactiverogue.json.BSONFormats
+
 import scala.collection.JavaConversions._
 
 import reactivemongo.bson._
@@ -59,7 +62,7 @@ trait BsonRecord[MyType <: BsonRecord[MyType]] {
   override def equals(other: Any): Boolean = {
     other match {
       case that: BsonRecord[MyType] =>
-        that.fields.corresponds(this.fields) { (a, b) =>
+        that.fields().corresponds(this.fields()) { (a, b) =>
           a.name == b.name && a.valueOpt == b.valueOpt
         }
       case _ => false
@@ -67,6 +70,11 @@ trait BsonRecord[MyType <: BsonRecord[MyType]] {
   }
 
   def copy: MyType = meta.copy(this)
+
+  override def toString = {
+
+    "<" + this.getClass.getSimpleName + ": " + Json.stringify(BSONFormats.BSONDocumentFormat.writes(asBSONDocument)) + ">"
+  }
 
 }
 

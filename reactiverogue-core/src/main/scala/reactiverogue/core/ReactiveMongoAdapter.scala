@@ -46,7 +46,7 @@ class ReactiveMongoAdapter[MB] {
     val description: String = buildConditionString("count", query.collectionName, queryClause)
 
     runCommand(description, queryClause) {
-      queryCollection(query).count(selector = Some(condition))
+      queryCollection(query).count(selector = Some(condition), limit = query.lim.getOrElse(0), skip = query.sk.getOrElse(0))
     }
   }
 
@@ -150,7 +150,8 @@ class ReactiveMongoAdapter[MB] {
 
       runCommand(description, modClause.query) {
         val coll = queryCollection(query)
-        val modifyCmd: BSONFindAndModifyCommand.Modify = if (remove) BSONFindAndModifyCommand.Remove else BSONFindAndModifyCommand.Update(m, returnNew)
+        val modifyCmd: BSONFindAndModifyCommand.Modify =
+          if (remove) BSONFindAndModifyCommand.Remove else BSONFindAndModifyCommand.Update(m, returnNew, upsert)
         coll.findAndModify(cnd, modifyCmd, sort = ord, fields = sel).map(_.result.map(f))
       }
     } else Future.successful(None)
