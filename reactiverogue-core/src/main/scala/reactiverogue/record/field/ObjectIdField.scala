@@ -24,8 +24,7 @@ import reactivemongo.bson._
 */
 class ObjectIdField[OwnerType <: BsonRecord[OwnerType]](rec: OwnerType)
     extends DirectBsonField[BSONObjectID]
-    with RecordField[BSONObjectID, OwnerType]
-    with MandatoryTypedField[BSONObjectID] {
+    with RequiredRecordField[BSONObjectID, OwnerType] {
 
   def owner = rec
 
