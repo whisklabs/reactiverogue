@@ -1,34 +1,12 @@
-// Copyright 2012 Foursquare Labs Inc. All Rights Reserved.
-
 package reactiverogue.core
 
-import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson._
 import reactiverogue.core.MongoHelpers.MongoSelect
-import reactiverogue.mongodb.MongoDB
 import reactiverogue.record.field.BsonRecordField
-import reactiverogue.record.{ BsonRecord, MongoMetaRecord, MongoRecord }
+import reactiverogue.record.{BsonRecord, MongoMetaRecord, MongoRecord}
 
-object LiftDBCollectionFactory extends DBCollectionFactory[MongoRecord[_] with MongoMetaRecord[_]] {
-  override def getDBCollection[M <: MongoRecord[_] with MongoMetaRecord[_]](query: Query[M, _, _]): BSONCollection = {
-    MongoDB.useSession(query.meta.mongoIdentifier) { db =>
-      db(query.collectionName)
-    }
-  }
-  override def getPrimaryDBCollection[M <: MongoRecord[_] with MongoMetaRecord[_]](query: Query[M, _, _]): BSONCollection = {
-    MongoDB.useSession(query.meta /* TODO: .master*/ .mongoIdentifier) { db =>
-      db(query.collectionName)
-    }
-  }
-  override def getInstanceName[M <: MongoRecord[_] with MongoMetaRecord[_]](query: Query[M, _, _]): String = {
-    query.meta.mongoIdentifier.toString
-  }
-}
 
-class LiftAdapter(dbCollectionFactory: DBCollectionFactory[MongoRecord[_] with MongoMetaRecord[_]])
-  extends ReactiveMongoAdapter(dbCollectionFactory)
-
-object LiftAdapter extends LiftAdapter(LiftDBCollectionFactory)
+object LiftAdapter extends ReactiveMongoAdapter[MongoRecord[_] with MongoMetaRecord[_]]
 
 class LiftQueryExecutor(override val adapter: ReactiveMongoAdapter[MongoRecord[_] with MongoMetaRecord[_]]) extends QueryExecutor[MongoRecord[_] with MongoMetaRecord[_]] {
   override def defaultWriteConcern = QueryHelpers.config.defaultWriteConcern
@@ -66,7 +44,7 @@ class LiftQueryExecutor(override val adapter: ReactiveMongoAdapter[MongoRecord[_
 object LiftQueryExecutor extends LiftQueryExecutor(LiftAdapter)
 
 object LiftQueryExecutorHelpers {
-  import reactiverogue.record.{ Field => LField }
+  import reactiverogue.record.{RecordField => LField}
 
   def setInstanceFieldFromDboList(instance: BsonRecord[_], doc: BSONDocument, fieldNames: List[String]): Option[_] = {
     fieldNames match {

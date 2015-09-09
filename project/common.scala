@@ -12,7 +12,7 @@ object common {
     scalaVersion := "2.11.7",
     crossScalaVersions := Seq("2.11.7", "2.10.5"),
     gitHeadCommitSha := Process("git rev-parse --short HEAD").lines.head,
-    version := "0.3.4",
+    version := "0.4.0.beta1",
     bintrayOrganization := Some("whisk"),
     licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
     bintrayRepository := {

@@ -1,48 +1,20 @@
-// Copyright 2011 Foursquare Labs Inc. All Rights Reserved.
 package reactiverogue.core
 
-import com.foursquare.index.{ Asc, Desc, IndexedRecord, IndexModifier, TwoD }
-import reactiverogue.core.LiftRogue._
-import reactiverogue.mongodb.{ MongoDB, MongoIdentifier, MongoHost, MongoAddress }
+import reactivemongo.bson.BSONObjectID
 import reactiverogue.record._
 import reactiverogue.record.field._
-import reactivemongo.bson.BSONObjectID
 import JsonFormats._
 
 /////////////////////////////////////////////////
 // Sample records for testing
 /////////////////////////////////////////////////
 
-object RogueTestMongo extends MongoIdentifier {
-
-  override def jndiName = "rogue_mongo"
-
-  private var mongo: Option[MongoHost] = None
-
-  def connectToMongo = {
-    val MongoPort = Option(System.getenv("MONGO_PORT")).map(_.toInt).getOrElse(37648)
-    val mongoHost = MongoHost("localhost:" + MongoPort)
-    mongoHost.connection
-    mongo = Some(mongoHost)
-    val addr = MongoAddress(mongoHost, "rogue-test")
-    //    val MongoPort = Option(System.getenv("MONGO_PORT")).map(_.toInt).getOrElse(37648)
-    //    mongo = Some(new Mongo(new ServerAddress("localhost", MongoPort)))
-    MongoDB.defineDb(RogueTestMongo, addr)
-  }
-
-  def disconnectFromMongo = {
-    mongo.foreach(_.driver.close)
-    MongoDB.close
-    mongo = None
-  }
-}
-
 object VenueStatus extends Enumeration {
   val open = Value("Open")
   val closed = Value("Closed")
 }
 
-class Venue extends MongoRecord[Venue] with IndexedRecord[Venue] {
+class Venue extends MongoRecord[Venue] {
   def meta = Venue
   object legacyid extends LongField(this) { override def name = "legid" }
   object userid extends LongField(this)
@@ -63,23 +35,6 @@ class Venue extends MongoRecord[Venue] with IndexedRecord[Venue] {
 }
 object Venue extends Venue with MongoMetaRecord[Venue] {
   override def collectionName = "venues"
-  override def mongoIdentifier = RogueTestMongo
-
-  object CustomIndex extends IndexModifier("custom")
-  val idIdx = Venue.index(_.id, Asc)
-  val mayorIdIdx = Venue.index(_.mayor, Asc, _.id, Asc)
-  val mayorIdClosedIdx = Venue.index(_.mayor, Asc, _.id, Asc, _.closed, Asc)
-  val legIdx = Venue.index(_.legacyid, Desc)
-  val geoIdx = Venue.index(_.geolatlng, TwoD)
-  val geoCustomIdx = Venue.index(_.geolatlng, CustomIndex, _.tags, Asc)
-  override val mongoIndexList = List(idIdx, mayorIdIdx, mayorIdClosedIdx, legIdx, geoIdx, geoCustomIdx)
-
-  trait FK[T <: FK[T]] extends MongoRecord[T] {
-    self: T =>
-    object venueid extends ObjectIdField[T](this) with HasMongoForeignObjectId[Venue] {
-      override def name = "vid"
-    }
-  }
 }
 
 object ClaimStatus extends Enumeration {
@@ -93,17 +48,17 @@ object RejectReason extends Enumeration {
   val wrongCode = Value("wrong code")
 }
 
-class VenueClaim extends MongoRecord[VenueClaim] with Venue.FK[VenueClaim] {
+class VenueClaim extends MongoRecord[VenueClaim] {
   def meta = VenueClaim
   object userid extends LongField(this) { override def name = "uid" }
   object status extends EnumNameField(this, ClaimStatus)
   object reason extends EnumField(this, RejectReason)
   object date extends DateField(this)
+  object venueid extends ObjectIdField(this)
 }
 object VenueClaim extends VenueClaim with MongoMetaRecord[VenueClaim] {
   override def fieldOrder = List(status, id, userid, venueid, reason)
   override def collectionName = "venueclaims"
-  override def mongoIdentifier = RogueTestMongo
 }
 
 class VenueClaimBson extends BsonRecord[VenueClaimBson] {
@@ -133,9 +88,6 @@ class Comment extends MongoRecord[Comment] {
 }
 object Comment extends Comment with MongoMetaRecord[Comment] {
   override def collectionName = "comments"
-  override def mongoIdentifier = RogueTestMongo
-
-  val idx1 = Comment.index(_.id, Asc)
 }
 
 class Tip extends MongoRecord[Tip] {
@@ -146,7 +98,6 @@ class Tip extends MongoRecord[Tip] {
 }
 object Tip extends Tip with MongoMetaRecord[Tip] {
   override def collectionName = "tips"
-  override def mongoIdentifier = RogueTestMongo
 }
 
 class Like extends MongoRecord[Like] with Sharded {
@@ -157,7 +108,6 @@ class Like extends MongoRecord[Like] with Sharded {
 }
 object Like extends Like with MongoMetaRecord[Like] {
   override def collectionName = "likes"
-  override def mongoIdentifier = RogueTestMongo
 }
 
 object ConsumerPrivilege extends Enumeration {
@@ -188,8 +138,6 @@ class CalendarFld private () extends MongoRecord[CalendarFld] with ObjectIdPk[Ca
 }
 
 object CalendarFld extends CalendarFld with MongoMetaRecord[CalendarFld] {
-  override def mongoIdentifier = RogueTestMongo
-
   override def collectionName = "calendar_fld"
 }
 

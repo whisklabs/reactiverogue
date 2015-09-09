@@ -5,25 +5,24 @@ commonSettings
 
 packagedArtifacts in file(".") := Map.empty
 
-lazy val mongodb =
-  module("reactiverogue-mongodb")
+lazy val bson =
+  module("reactiverogue-bson")
     .settings(
-      libraryDependencies ++= mongoDependencies)
+      libraryDependencies ++= bsonDependencies)
+
+lazy val json =
+  module("reactiverogue-json")
+    .settings(
+      libraryDependencies ++= jsonDependencies)
 
 lazy val core =
   module("reactiverogue-core")
-    .dependsOn(mongodb)
+    .dependsOn(bson, json)
     .settings(
       libraryDependencies ++= coreDependencies)
 
-lazy val record =
-  module("reactiverogue-record")
-    .dependsOn(core)
-    .settings(
-      libraryDependencies ++= recordDependencies)
-
 lazy val recordDsl =
   module("reactiverogue-record-dsl")
-    .dependsOn(record)
+    .dependsOn(core)
     .settings(
       libraryDependencies ++= recordDslDependencies)

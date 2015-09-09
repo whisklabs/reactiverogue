@@ -3,8 +3,8 @@
 package reactiverogue.core
 
 import play.api.libs.json.Json
-import play.modules.reactivemongo.json.BSONFormats
 import reactivemongo.bson._
+import reactiverogue.json.BSONFormats
 import scala.collection.immutable.ListMap
 import collection.mutable.ListBuffer
 
@@ -73,7 +73,7 @@ object MongoHelpers extends Rogue {
         case (op, cs) =>
           val nameBuff = ListBuffer.empty[(String, BSONValue)]
           cs.foreach(_.extend(nameBuff))
-          op.toString() -> BSONDocument(nameBuff)
+          op.toString -> BSONDocument(nameBuff)
       }
       BSONDocument(seq)
     }
@@ -87,7 +87,7 @@ object MongoHelpers extends Rogue {
       def str = Json.stringify(BSONFormats.BSONDocumentFormat.writes(doc))
     }
 
-    def buildSelect[M, R](select: MongoSelect[M, R]): BSONDocument = {
+    def buildSelect[M, _](select: MongoSelect[M, _]): BSONDocument = {
       // If select.fields is empty, then a MongoSelect clause exists, but has an empty
       // list of fields. In this case (used for .exists()), we select just the
       // _id field.

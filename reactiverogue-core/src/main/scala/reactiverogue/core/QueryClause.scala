@@ -5,7 +5,7 @@ package reactiverogue.core
 import java.util.regex.Pattern
 import scala.collection.mutable.ListBuffer
 import reactivemongo.bson._
-import reactiverogue.mongodb.BSONSerializable
+import reactiverogue.bson.BSONSerializable
 
 abstract class QueryClause[+V](val fieldName: String, val actualIndexBehavior: MaybeIndexed, val conditions: (CondOps.Value, BSONValue)*) {
   def extend(q: ListBuffer[(String, BSONValue)], signature: Boolean): Unit = {

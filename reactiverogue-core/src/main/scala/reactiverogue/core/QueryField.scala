@@ -1,14 +1,11 @@
-// Copyright 2011 Foursquare Labs Inc. All Rights Reserved.
-
 package reactiverogue.core
 
-import com.foursquare.field.{ Field, OptionalField, RequiredField }
 import java.util.Date
 import java.util.regex.Pattern
 import org.joda.time.DateTime
 import scala.util.matching.Regex
 import reactivemongo.bson._
-import reactiverogue.mongodb.BSONSerializable
+import reactiverogue.bson.BSONSerializable
 import scala.language.higherKinds
 
 object CondOps extends Enumeration {
@@ -87,8 +84,8 @@ abstract class LegacyAbstractQueryField[F, V, M](val field: Field[F, M]) {
 
   def eqs(v: V) = EqClause(field.name, valueToDB(v))
   def neqs(v: V) = new NeQueryClause(field.name, valueToDB(v))
-  def in[L <% Traversable[V]](vs: L) = QueryHelpers.inListClause(field.name, QueryHelpers.validatedList(vs.map(valueToDB)))
-  def nin[L <% Traversable[V]](vs: L) = new NinQueryClause(field.name, QueryHelpers.validatedList(vs.map(valueToDB)))
+  def in[L <: Traversable[V]](vs: L) = QueryHelpers.inListClause(field.name, QueryHelpers.validatedList(vs.map(valueToDB)))
+  def nin[L <: Traversable[V]](vs: L) = new NinQueryClause(field.name, QueryHelpers.validatedList(vs.map(valueToDB)))
 
   def lt(v: V) = new LtQueryClause(field.name, valueToDB(v))
   def gt(v: V) = new GtQueryClause(field.name, valueToDB(v))
@@ -136,15 +133,6 @@ class DateQueryField[M](field: Field[Date, M])
   def after(d: DateTime) = new GtQueryClause(field.name, valueToDB(d.toDate))
   def onOrBefore(d: DateTime) = new LtEqQueryClause(field.name, valueToDB(d.toDate))
   def onOrAfter(d: DateTime) = new GtEqQueryClause(field.name, valueToDB(d.toDate))
-}
-
-class DateTimeQueryField[M](field: Field[DateTime, M])
-    extends QueryField[DateTime, M](field) {
-
-  def before(d: DateTime) = new LtQueryClause(field.name, valueToDB(d))
-  def after(d: DateTime) = new GtQueryClause(field.name, valueToDB(d))
-  def onOrBefore(d: DateTime) = new LtEqQueryClause(field.name, valueToDB(d))
-  def onOrAfter(d: DateTime) = new GtEqQueryClause(field.name, valueToDB(d))
 }
 
 class EnumNameQueryField[M, E <: Enumeration#Value](field: Field[E, M])
@@ -352,7 +340,7 @@ class BsonRecordListQueryField[M, B](field: Field[List[B], M], rec: B, asBSONVal
   }
 
   def subselect[V, V1](f: B => Field[V, B])(implicit ev: Rogue.Flattened[V, V1]): SelectField[Option[List[V1]], M] = {
-    Rogue.roptionalFieldToSelectField(subfield(f))
+    new OptionalSelectField(subfield(f))
   }
 
   def unsafeField[V](name: String): DummyField[V, M] = {
@@ -404,10 +392,6 @@ class DateModifyField[M](field: Field[Date, M])
     extends ModifyField[Date, M](field) {
 
   def setTo(d: DateTime) = new ModifyClause(ModOps.Set, field.name -> valueToDB(d.toDate))
-}
-
-class DateTimeModifyField[M](field: Field[DateTime, M])
-    extends ModifyField[DateTime, M](field) {
 }
 
 class EnumerationModifyField[M, E <: Enumeration#Value](field: Field[E, M])

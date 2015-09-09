@@ -1,29 +1,25 @@
-// Copyright 2011 Foursquare Labs Inc. All Rights Reserved.
 package reactiverogue.core
 
-import reactiverogue.core.LiftRogue._
+import reactiverogue.core.QueryImplicits._
 
 import java.util.regex.Pattern
 import reactiverogue.record._
-import reactiverogue.record.field._
-import reactiverogue.mongodb.BSONSerializable
+import reactiverogue.bson.BSONSerializable
 import reactivemongo.bson._
 import org.joda.time.{ DateTime, DateTimeZone }
 
 import org.junit._
 import org.specs2.matcher.JUnitMustMatchers
 
-import JsonFormats._
-
 class QueryTest extends JUnitMustMatchers {
 
   def dateToByteArray(d: DateTime): Array[Byte] = {
-    val b = new Array[Byte](12);
-    val bb = java.nio.ByteBuffer.wrap(b);
-    bb.putInt((d.getMillis() / 1000).intValue());
-    bb.putInt(0);
-    bb.putInt(0);
-    return b;
+    val b = new Array[Byte](12)
+    val bb = java.nio.ByteBuffer.wrap(b)
+    bb.putInt((d.getMillis() / 1000).intValue())
+    bb.putInt(0)
+    bb.putInt(0)
+    b
   }
 
   def simpleObjectId(d: DateTime): BSONObjectID =
@@ -119,14 +115,14 @@ class QueryTest extends JUnitMustMatchers {
     Tip.where(_.counts at "foo" eqs 3).toString() must_== """db.tips.find({"counts.foo":3})"""
 
     // near
-    Venue.where(_.geolatlng near (39.0, -74.0, Degrees(0.2))).toString() must_== """db.venues.find({"latlng":{"$near":[39.0,-74.0,0.2]}})"""
-    Venue.where(_.geolatlng withinCircle (1.0, 2.0, Degrees(0.3))).toString() must_== """db.venues.find({"latlng":{"$within":{"$center":[[1.0,2.0],0.3]}}})"""
-    Venue.where(_.geolatlng withinBox (1.0, 2.0, 3.0, 4.0)).toString() must_== """db.venues.find({"latlng":{"$within":{"$box":[[1.0,2.0],[3.0,4.0]]}}})"""
-    Venue.where(_.geolatlng eqs (45.0, 50.0)).toString() must_== """db.venues.find({"latlng":[45.0,50.0]})"""
-    Venue.where(_.geolatlng neqs (31.0, 23.0)).toString() must_== """db.venues.find({"latlng":{"$ne":[31.0,23.0]}})"""
-    Venue.where(_.geolatlng eqs LatLong(45.0, 50.0)).toString() must_== """db.venues.find({"latlng":[45.0,50.0]})"""
-    Venue.where(_.geolatlng neqs LatLong(31.0, 23.0)).toString() must_== """db.venues.find({"latlng":{"$ne":[31.0,23.0]}})"""
-    Venue.where(_.geolatlng nearSphere (39.0, -74.0, Radians(1.0))).toString() must_== """db.venues.find({"latlng":{"$nearSphere":[39.0,-74.0],"$maxDistance":1.0}})"""
+    Venue.where(_.geolatlng near (39.0, -74.0, Degrees(0.2))).toString() must_== """db.venues.find({"latlng":{"$near":[39,-74,0.2]}})"""
+    Venue.where(_.geolatlng withinCircle (1.0, 2.0, Degrees(0.3))).toString() must_== """db.venues.find({"latlng":{"$within":{"$center":[[1,2],0.3]}}})"""
+    Venue.where(_.geolatlng withinBox (1.0, 2.0, 3.0, 4.0)).toString() must_== """db.venues.find({"latlng":{"$within":{"$box":[[1,2],[3,4]]}}})"""
+    Venue.where(_.geolatlng eqs (45.0, 50.0)).toString() must_== """db.venues.find({"latlng":[45,50]})"""
+    Venue.where(_.geolatlng neqs (31.0, 23.0)).toString() must_== """db.venues.find({"latlng":{"$ne":[31,23]}})"""
+    Venue.where(_.geolatlng eqs LatLong(45.0, 50.0)).toString() must_== """db.venues.find({"latlng":[45,50]})"""
+    Venue.where(_.geolatlng neqs LatLong(31.0, 23.0)).toString() must_== """db.venues.find({"latlng":{"$ne":[31,23]}})"""
+    Venue.where(_.geolatlng nearSphere (39.0, -74.0, Radians(1.0))).toString() must_== """db.venues.find({"latlng":{"$nearSphere":[39,-74],"$maxDistance":1}})"""
 
     // ObjectId before, after, between
     //    Venue.where(_.id before d2).toString() must_== """db.venues.find({"_id":{"$lt":"%s"}})""".format(oid2.stringify)
@@ -636,7 +632,7 @@ class QueryTest extends JUnitMustMatchers {
 
     // For sanity
     // Venue.where(_.legacyid eqs 3)
-    check("""Venue.where(_.legacyid eqs 3)""", None)
+//    check("""Venue.where(_.legacyid eqs 3)""", None)
 
     // Basic operator and operand type matching
     check("""Venue.where(_.legacyid eqs "hi")""")
@@ -658,18 +654,6 @@ class QueryTest extends JUnitMustMatchers {
 
     // whereOpt
     check("""Venue.whereOpt(Some("hi"))(_.legacyid eqs _)""")
-
-    // Foreign keys
-    // first make sure that each type-safe foreign key works as expected
-    check("""VenueClaim.where(_.venueid eqs Venue.createRecord.id.value)""", None)
-    check("""VenueClaim.where(_.venueid neqs Venue.createRecord.id.value)""", None)
-    check("""VenueClaim.where(_.venueid in List(Venue.createRecord.id.value))""", None)
-    check("""VenueClaim.where(_.venueid nin List(Venue.createRecord.id.value))""", None)
-    // now check that they reject invalid args
-    check("""VenueClaim.where(_.venueid eqs Tip.createRecord)""")
-    check("""VenueClaim.where(_.venueid neqs Tip.createRecord)""")
-    check("""VenueClaim.where(_.venueid in List(Tip.createRecord))""")
-    check("""VenueClaim.where(_.venueid nin List(Tip.createRecord))""")
 
     // Can't select array index
     check("""Venue.where(_.legacyid eqs 1).select(_.tags at 0)""")

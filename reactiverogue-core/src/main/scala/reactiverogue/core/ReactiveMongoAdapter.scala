@@ -1,25 +1,16 @@
-// Copyright 2012 Foursquare Labs Inc. All Rights Reserved.
-
 package reactiverogue.core
 
 import reactivemongo.api.collections.bson.BSONCollection
-import reactivemongo.api.commands.{ DefaultWriteResult, WriteResult, WriteConcern }
-import reactiverogue.core.Rogue._
-import reactiverogue.core.Iter._
+import reactivemongo.api.commands.bson.BSONFindAndModifyCommand
+import reactivemongo.api.commands.{DefaultWriteResult, WriteResult, WriteConcern}
 import reactivemongo.bson._
 import reactivemongo.api._
 import reactivemongo.core.commands._
-import scala.concurrent.{ Future, ExecutionContext }
+import scala.concurrent.{Future, ExecutionContext}
 import play.api.libs.iteratee.Iteratee
 import reactivemongo.api.collections.GenericQueryBuilder
 
-trait DBCollectionFactory[MB] {
-  def getDBCollection[M <: MB](query: Query[M, _, _]): BSONCollection
-  def getPrimaryDBCollection[M <: MB](query: Query[M, _, _]): BSONCollection
-  def getInstanceName[M <: MB](query: Query[M, _, _]): String
-}
-
-class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
+class ReactiveMongoAdapter[MB] {
 
   import QueryHelpers._
   import MongoHelpers.MongoBuilder._
@@ -28,34 +19,34 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
     LastError(ok = true, err = None, code = None, errMsg = None,
       originalDocument = None, updated = 0, updatedExisting = false)
 
+  private def queryCollection(query: Query[_, _, _])(implicit db: DefaultDB): BSONCollection = db(query.collectionName)
+
   //TODO: make it looking for async commands
   private[reactiverogue] def runCommand[M <: MB, T](description: => String,
-    query: Query[M, _, _])(f: => T): T = {
+                                                    query: Query[M, _, _])(f: => T): T = {
     // Use nanoTime instead of currentTimeMillis to time the query since
     // currentTimeMillis only has 10ms granularity on many systems.
     val start = System.nanoTime
-    val instanceName: String = dbCollectionFactory.getInstanceName(query)
     try {
-      logger.onExecuteQuery(query, instanceName, description, f)
+      logger.onExecuteQuery(query, description, f)
     } catch {
       case e: Exception =>
-        throw new RogueException("Mongo query on %s [%s] failed after %d ms".
-          format(instanceName, description,
+        throw new RogueException("Mongo query [%s] failed after %d ms".
+          format(description,
             (System.nanoTime - start) / (1000 * 1000)), e)
     } finally {
-      logger.log(query, instanceName, description, (System.nanoTime - start) / (1000 * 1000))
+      logger.log(query, description, (System.nanoTime - start) / (1000 * 1000))
     }
   }
 
-  def count[M <: MB](query: Query[M, _, _])(implicit ec: ExecutionContext): Future[Int] = {
+  def count[M <: MB](query: Query[M, _, _])(implicit ec: ExecutionContext, db: DefaultDB): Future[Int] = {
     val queryClause = transformer.transformQuery(query)
     validator.validateQuery(queryClause)
     val condition: BSONDocument = buildCondition(queryClause.condition)
     val description: String = buildConditionString("count", query.collectionName, queryClause)
 
     runCommand(description, queryClause) {
-      val coll = dbCollectionFactory.getDBCollection(query)
-      coll.count(selector = Some(condition))
+      queryCollection(query).count(selector = Some(condition))
     }
   }
 
@@ -82,7 +73,7 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
   //    this.copy(select = Some(MongoSelect(fields, transformer)))
   //  }
 
-  def distinct[M <: MB, R](query: Query[M, _, _], key: String, s: RogueSerializer[R])(implicit ec: ExecutionContext): Future[List[R]] = {
+  def distinct[M <: MB, R](query: Query[M, _, _], key: String, s: RogueSerializer[R])(implicit ec: ExecutionContext, db: DefaultDB): Future[List[R]] = {
     val queryClause = transformer.transformQuery(query)
     validator.validateQuery(queryClause)
     val cnd = buildCondition(queryClause.condition)
@@ -91,14 +82,14 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
     val description = buildConditionString("distinct", query.collectionName, queryClause)
 
     runCommand(description, queryClause) {
-      val coll = dbCollectionFactory.getDBCollection(query)
-      val command = reactivemongo.core.commands.RawCommand(
+      val coll = queryCollection(query)
+      val command = RawCommand(
         BSONDocument(
           "distinct" -> coll.name,
           "key" -> key,
           "query" -> cnd))
 
-      coll.db.command(command).map { bson =>
+      db.command(command).map { bson =>
         val values: List[BSONValue] = bson.getAs[BSONArray]("values").toList.flatMap(_.values)
         val first :: rest = key.split("\\.").toList
         val docFunc: BSONValue => BSONDocument =
@@ -111,22 +102,22 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
     }
   }
 
-  def delete[M <: MB](query: Query[M, _, _], writeConcern: WriteConcern)(implicit ec: ExecutionContext): Future[WriteResult] = {
+  def delete[M <: MB](query: Query[M, _, _], writeConcern: WriteConcern)(implicit ec: ExecutionContext, db: DefaultDB): Future[WriteResult] = {
     val queryClause = transformer.transformQuery(query)
     validator.validateQuery(queryClause)
     val cnd = buildCondition(queryClause.condition)
     val description = buildConditionString("remove", query.collectionName, queryClause)
 
     runCommand(description, queryClause) {
-      val coll = dbCollectionFactory.getPrimaryDBCollection(query)
+      val coll = queryCollection(query)
       coll.remove(cnd, writeConcern, firstMatchOnly = false)
     }
   }
 
   def modify[M <: MB](mod: ModifyQuery[M, _],
-    upsert: Boolean,
-    multi: Boolean,
-    writeConcern: WriteConcern)(implicit ec: ExecutionContext): Future[WriteResult] = {
+                      upsert: Boolean,
+                      multi: Boolean,
+                      writeConcern: WriteConcern)(implicit ec: ExecutionContext, db: DefaultDB): Future[WriteResult] = {
     val modClause = transformer.transformModify(mod)
     validator.validateModify(modClause)
     if (modClause.mod.clauses.nonEmpty) {
@@ -135,7 +126,7 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
       lazy val description = buildModifyString(mod.query.collectionName, modClause, upsert = upsert, multi = multi)
 
       runCommand(description, modClause.query) {
-        val coll = dbCollectionFactory.getPrimaryDBCollection(modClause.query)
+        val coll = queryCollection(modClause.query)
         coll.update(q, m, writeConcern, upsert, multi)
       }
     } else {
@@ -144,54 +135,50 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
   }
 
   def findAndModify[M <: MB, R](mod: FindAndModifyQuery[M, R],
-    returnNew: Boolean,
-    upsert: Boolean,
-    remove: Boolean)(f: BSONDocument => R)(implicit ec: ExecutionContext): Future[Option[R]] = {
+                                returnNew: Boolean,
+                                upsert: Boolean,
+                                remove: Boolean)(f: BSONDocument => R)(implicit ec: ExecutionContext, db: DefaultDB): Future[Option[R]] = {
     val modClause = transformer.transformFindAndModify(mod)
     validator.validateFindAndModify(modClause)
     if (modClause.mod.clauses.nonEmpty || remove) {
       val query = modClause.query
       val cnd = buildCondition(query.condition)
-      val ord = query.order.map(buildOrder)
+      val ord: Option[BSONDocument] = query.order.map(buildOrder)
       val sel = query.select.map(buildSelect)
       val m = buildModify(modClause.mod)
       lazy val description = buildFindAndModifyString(mod.query.collectionName, modClause, returnNew, upsert, remove)
 
       runCommand(description, modClause.query) {
-        val coll = dbCollectionFactory.getPrimaryDBCollection(query)
-        val modifyCmd = if (remove) Remove else Update(m, returnNew)
-        val cmd =
-          FindAndModify(query.collectionName, query = cnd, modify = modifyCmd,
-            upsert = upsert, sort = ord, fields = sel)
-        coll.db.command(cmd).map(_.map(f))
+        val coll = queryCollection(query)
+        val modifyCmd: BSONFindAndModifyCommand.Modify = if (remove) BSONFindAndModifyCommand.Remove else BSONFindAndModifyCommand.Update(m, returnNew)
+        coll.findAndModify(cnd, modifyCmd, sort = ord, fields = sel).map(_.result.map(f))
       }
     } else Future.successful(None)
   }
 
   def query[M <: MB](query: Query[M, _, _],
-    batchSize: Option[Int])(f: BSONDocument => Unit)(implicit ec: ExecutionContext): Unit = {
+                     batchSize: Option[Int])(f: BSONDocument => Unit)(implicit ec: ExecutionContext, db: DefaultDB): Unit = {
     doQuery("find", query, batchSize) { cursor =>
       cursor.enumerate().apply(Iteratee.foreach(f))
     }
   }
 
-  def queryBuilder[M <: MB](query: Query[M, _, _], batchSize: Option[Int])(implicit ec: ExecutionContext): GenericQueryBuilder[BSONSerializationPack.type] = {
+  def queryBuilder[M <: MB](query: Query[M, _, _], batchSize: Option[Int])(implicit ec: ExecutionContext, db: DefaultDB): GenericQueryBuilder[BSONSerializationPack.type] = {
 
     val queryClause = transformer.transformQuery(query)
     validator.validateQuery(queryClause)
     val cnd = buildCondition(queryClause.condition)
     val ord = queryClause.order.map(buildOrder)
     val sel = queryClause.select.map(buildSelect).getOrElse(BSONDocument())
-    //    val hnt = queryClause.hint.map(buildHint)
 
-    val coll = dbCollectionFactory.getDBCollection(query)
+    val coll = queryCollection(query)
     val opts = QueryOpts(skipN = queryClause.sk.getOrElse(0), batchSizeN = batchSize.getOrElse(0))
     def _qry = coll.find(cnd, sel).options(opts)
     def qb = ord.fold(_qry)(_qry.sort)
     qb
   }
 
-  def cursor[M <: MB, T: BSONDocumentReader](query: Query[M, _, _], batchSize: Option[Int])(implicit ec: ExecutionContext): Cursor[T] = {
+  def cursor[M <: MB, T: BSONDocumentReader](query: Query[M, _, _], batchSize: Option[Int])(implicit ec: ExecutionContext, db: DefaultDB): Cursor[T] = {
     val qb = queryBuilder(query, batchSize)
     query.readPreference match {
       case Some(rp) => qb.cursor[T](rp)
@@ -199,7 +186,7 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
     }
   }
 
-  def one[M <: MB, T: BSONDocumentReader](query: Query[M, _, _], batchSize: Option[Int])(implicit ec: ExecutionContext): Future[Option[T]] = {
+  def one[M <: MB, T: BSONDocumentReader](query: Query[M, _, _], batchSize: Option[Int])(implicit ec: ExecutionContext, db: DefaultDB): Future[Option[T]] = {
     val qb = queryBuilder(query, batchSize)
     query.readPreference match {
       case Some(rp) => qb.one[T](rp)
@@ -208,15 +195,15 @@ class ReactiveMongoAdapter[MB](dbCollectionFactory: DBCollectionFactory[MB]) {
   }
 
   def doQuery[M <: MB, T](
-    operation: String,
-    query: Query[M, _, _],
-    batchSize: Option[Int])(f: Cursor[BSONDocument] => T)(implicit ec: ExecutionContext): T = {
+                           operation: String,
+                           query: Query[M, _, _],
+                           batchSize: Option[Int])(f: Cursor[BSONDocument] => T)(implicit ec: ExecutionContext, db: DefaultDB): T = {
     val queryClause = transformer.transformQuery(query)
 
     lazy val description = buildQueryString(operation, query.collectionName, queryClause)
 
     runCommand(description, queryClause) {
-      val coll = dbCollectionFactory.getDBCollection(query)
+      val coll = queryCollection(query)
       try {
         //        val cursor = cursor
         f(cursor[M, BSONDocument](query, batchSize))

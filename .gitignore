@@ -4,3 +4,4 @@ project/sbt-launch-*.jar
 dependencies/
 mongo-testdb/
 .idea/
+.DS_Store
