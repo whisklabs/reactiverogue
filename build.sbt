@@ -1,9 +1,13 @@
 import dependencies._
 import common._
 
-commonSettings
-
-packagedArtifacts in file(".") := Map.empty
+lazy val root =
+  project.in(file("."))
+    .settings(commonSettings: _*)
+    .settings(
+      publish := {},
+      publishLocal := {})
+    .aggregate(bson, json, core, recordDsl)
 
 lazy val bson =
   module("reactiverogue-bson")
