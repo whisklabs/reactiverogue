@@ -3,10 +3,10 @@ import sbt._
 object dependencies {
 
   object V {
-    val Reactivemongo = "0.11.7"
+    val Reactivemongo = "0.11.8"
   }
 
-  val playJson = "com.typesafe.play" %% "play-json" % "2.4.3"
+  val playJson = "com.typesafe.play" %% "play-json" % "2.4.4"
   val reactivemongoBson = "org.reactivemongo" %% "reactivemongo-bson" % V.Reactivemongo
   val reactivemongo = "org.reactivemongo" %% "reactivemongo" % V.Reactivemongo
 
