@@ -4,7 +4,7 @@ package reactiverogue.core
 
 import play.api.libs.json.Json
 import reactivemongo.bson._
-import reactiverogue.json.BSONFormats
+import reactivemongo.play.json.BSONFormats
 import scala.collection.immutable.ListMap
 import collection.mutable.ListBuffer
 

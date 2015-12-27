@@ -3,11 +3,12 @@ import sbt._
 object dependencies {
 
   object V {
-    val Reactivemongo = "0.11.8"
+    val Reactivemongo = "0.11.9"
   }
 
-  val playJson = "com.typesafe.play" %% "play-json" % "2.4.4"
+  val playJson = "com.typesafe.play" %% "play-json" % "2.4.6"
   val reactivemongoBson = "org.reactivemongo" %% "reactivemongo-bson" % V.Reactivemongo
+  val reactivemongoJson = "org.reactivemongo" %% "reactivemongo-play-json" % "0.11.9-1"
   val reactivemongo = "org.reactivemongo" %% "reactivemongo" % V.Reactivemongo
 
   val junit = "junit" % "junit" % "4.12"
@@ -17,11 +18,8 @@ object dependencies {
   val bsonDependencies =
     Seq(reactivemongoBson)
 
-  val jsonDependencies =
-    Seq(reactivemongo, playJson)
-
   val coreDependencies =
-    Seq(reactivemongo)
+    Seq(reactivemongo, reactivemongoJson, playJson)
 
   val recordDslDependencies =
     Seq(junit % "test", scalatest % "test", dockerIt % "test")

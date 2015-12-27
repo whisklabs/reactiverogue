@@ -83,14 +83,7 @@ class ReactiveMongoAdapter[MB] {
 
     runCommand(description, queryClause) {
       val coll = queryCollection(query)
-      val command = RawCommand(
-        BSONDocument(
-          "distinct" -> coll.name,
-          "key" -> key,
-          "query" -> cnd))
-
-      db.command(command).map { bson =>
-        val values: List[BSONValue] = bson.getAs[BSONArray]("values").toList.flatMap(_.values)
+      coll.distinct(key, selector = Some(cnd)).map { values =>
         val first :: rest = key.split("\\.").toList
         val docFunc: BSONValue => BSONDocument =
           rest.foldLeft[BSONValue => BSONDocument](v => BSONDocument(first -> v)) {

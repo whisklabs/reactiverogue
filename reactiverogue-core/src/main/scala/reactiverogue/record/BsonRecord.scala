@@ -19,7 +19,7 @@ package reactiverogue.record
 import play.api.libs.json.Json
 import reactiverogue.bson._
 import java.util.regex.Pattern
-import reactiverogue.json.BSONFormats
+import reactivemongo.play.json.BSONFormats
 
 import scala.collection.JavaConversions._
 

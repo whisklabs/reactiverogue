@@ -7,21 +7,16 @@ lazy val root =
     .settings(
       publish := {},
       publishLocal := {})
-    .aggregate(bson, json, core, recordDsl)
+    .aggregate(bson, core, recordDsl)
 
 lazy val bson =
   module("reactiverogue-bson")
     .settings(
       libraryDependencies ++= bsonDependencies)
 
-lazy val json =
-  module("reactiverogue-json")
-    .settings(
-      libraryDependencies ++= jsonDependencies)
-
 lazy val core =
   module("reactiverogue-core")
-    .dependsOn(bson, json)
+    .dependsOn(bson)
     .settings(
       libraryDependencies ++= coreDependencies)
 
