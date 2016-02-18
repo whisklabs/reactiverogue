@@ -47,6 +47,10 @@ class QueryTest extends JUnitSuite with Matchers {
     //    VenueClaim.where(_.venueid eqs ven1.id.value).toString() shouldBe ("""db.venueclaims.find({"vid":"%s"})""" format oid1.stringify)
     //    VenueClaim.where(_.venueid eqs ven1)    .toString() shouldBe ("""db.venueclaims.find({"vid":"%s"})""" format oid1.stringify)
 
+    Venue.where(_.zipCode eqs None).toString shouldBe """db.venues.find({"zipCode":{"$exists":false}})"""
+    Venue.where(_.zipCode eqs "60606").toString shouldBe """db.venues.find({"zipCode":"60606"})"""
+    Venue.where(_.zipCode eqs Some("60606")).toString shouldBe """db.venues.find({"zipCode":"60606"})"""
+
     // neq,lt,gt
     Venue.where(_.mayor_count neqs 5).toString() shouldBe """db.venues.find({"mayor_count":{"$ne":5}})"""
     Venue.where(_.mayor_count < 5).toString() shouldBe """db.venues.find({"mayor_count":{"$lt":5}})"""

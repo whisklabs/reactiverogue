@@ -82,7 +82,7 @@ abstract class LegacyAbstractQueryField[F, V, M](val field: Field[F, M]) {
   def valueToDB(v: V): BSONValue
   def valuesToDB(vs: Traversable[V]): Traversable[BSONValue] = vs.map(valueToDB)
 
-  def eqs(v: V) = EqClause(field.name, valueToDB(v))
+  def eqs(v: V): QueryClause[_] = EqClause(field.name, valueToDB(v))
   def neqs(v: V) = new NeQueryClause(field.name, valueToDB(v))
   def in[L <: Traversable[V]](vs: L) = QueryHelpers.inListClause(field.name, QueryHelpers.validatedList(vs.map(valueToDB)))
   def nin[L <: Traversable[V]](vs: L) = new NinQueryClause(field.name, QueryHelpers.validatedList(vs.map(valueToDB)))
@@ -111,6 +111,16 @@ abstract class AbstractQueryField[V, M](field: Field[V, M]) extends LegacyAbstra
 
 class QueryField[V: BSONSerializable, M](field: Field[V, M])
     extends AbstractQueryField[V, M](field) {
+
+  override def valueToDB(v: V): BSONValue = BSONSerializable[V].asBSONValue(v)
+}
+
+class OptionalQueryField[V: BSONSerializable, M](field: Field[V, M]) extends QueryField[V, M](field) {
+
+  def eqs(v: Option[V]): QueryClause[_] = v match {
+    case Some(value) => eqs(value)
+    case None => exists(false)
+  }
 
   override def valueToDB(v: V): BSONValue = BSONSerializable[V].asBSONValue(v)
 }

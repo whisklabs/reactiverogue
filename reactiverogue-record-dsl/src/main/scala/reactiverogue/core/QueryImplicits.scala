@@ -61,6 +61,8 @@ trait QueryImplicits extends Rogue {
 
   implicit def fieldToQueryField[M <: BsonRecord[M], F: BSONSerializable](f: Field[F, M]): QueryField[F, M] = new QueryField(f)
 
+  implicit def optionalFieldToQueryField[M <: BsonRecord[M], F: BSONSerializable](f: OptionalRecordField[F, M]): OptionalQueryField[F, M] = new OptionalQueryField(f)
+
   implicit def bsonRecordFieldToBsonRecordQueryField[M <: BsonRecord[M], B <: BsonRecord[B]](
     f: BsonRecordField[M, B]): BsonRecordQueryField[M, B] = {
     val rec = f.defaultValue // a hack to get at the embedded record

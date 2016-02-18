@@ -32,6 +32,7 @@ class Venue extends MongoRecord[Venue] {
     override def zero = VenueClaimBson.createRecord
   }
   object lastClaim extends BsonRecordField(this, VenueClaimBson)
+  object zipCode extends OptionalStringField(this)
 }
 object Venue extends Venue with MongoMetaRecord[Venue] {
   override def collectionName = "venues"
