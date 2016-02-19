@@ -10,4 +10,4 @@ Consider [QueryTest.scala](https://github.com/whiskteam/reactiverogue/blob/maste
 
     resolvers += "Whisk Releases" at "https://dl.bintray.com/whisk/maven"
 
-    libraryDependencies += "com.whisk" %% "reactiverogue-record-dsl" % "0.4.0.beta4"
+    libraryDependencies += "com.whisk" %% "reactiverogue-record-dsl" % "0.4.0.beta7"
