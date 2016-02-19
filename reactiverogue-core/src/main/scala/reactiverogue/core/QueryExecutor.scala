@@ -5,6 +5,7 @@ import reactivemongo.api.DefaultDB
 import reactivemongo.api.commands.{ DefaultWriteResult, WriteConcern, WriteResult }
 import reactivemongo.bson.{ BSONDocument, BSONDocumentReader }
 import reactivemongo.core.commands.LastError
+import reactivemongo.play.iteratees._
 import reactiverogue.core.MongoHelpers.{ MongoModify, MongoSelect }
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -81,10 +82,10 @@ trait QueryExecutor[MB] extends Rogue {
       Enumerator.empty
     } else {
       implicit val s = serializer[M, R](query.meta, query.select)
-      val cursor = adapter.cursor(query, None)
+      val cursor = cursorProducer.produce(adapter.cursor(query, None))
       query.lim match {
-        case Some(limit) => cursor.enumerate(maxDocs = limit)
-        case None => cursor.enumerate()
+        case Some(limit) => cursor.enumerator(maxDocs = limit)
+        case None => cursor.enumerator()
       }
     }
   }

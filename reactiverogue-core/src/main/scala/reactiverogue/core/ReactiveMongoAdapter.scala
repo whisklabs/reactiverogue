@@ -6,6 +6,7 @@ import reactivemongo.api.commands.{DefaultWriteResult, WriteResult, WriteConcern
 import reactivemongo.bson._
 import reactivemongo.api._
 import reactivemongo.core.commands._
+import reactivemongo.play.iteratees._
 import scala.concurrent.{Future, ExecutionContext}
 import play.api.libs.iteratee.Iteratee
 import reactivemongo.api.collections.GenericQueryBuilder
@@ -83,7 +84,7 @@ class ReactiveMongoAdapter[MB] {
 
     runCommand(description, queryClause) {
       val coll = queryCollection(query)
-      coll.distinct(key, selector = Some(cnd)).map { values =>
+      coll.distinct[BSONValue](key, selector = Some(cnd)).map { values =>
         val first :: rest = key.split("\\.").toList
         val docFunc: BSONValue => BSONDocument =
           rest.foldLeft[BSONValue => BSONDocument](v => BSONDocument(first -> v)) {
@@ -153,7 +154,7 @@ class ReactiveMongoAdapter[MB] {
   def query[M <: MB](query: Query[M, _, _],
                      batchSize: Option[Int])(f: BSONDocument => Unit)(implicit ec: ExecutionContext, db: DefaultDB): Unit = {
     doQuery("find", query, batchSize) { cursor =>
-      cursor.enumerate().apply(Iteratee.foreach(f))
+      cursorProducer.produce(cursor).enumerator().apply(Iteratee.foreach(f))
     }
   }
 
