@@ -14,7 +14,7 @@ object dependencies {
 
   val junit = "junit" % "junit" % "4.12"
   val scalatest = "org.scalatest" %% "scalatest" % "2.2.6"
-  val dockerIt = "com.whisk" %% "docker-it-scala" % "0.2.0"
+  val dockerIt = "com.whisk" %% "docker-testkit-scalatest" % "0.7.0-RC1"
 
   val bsonDependencies =
     Seq(reactivemongoBson)

@@ -1,9 +1,8 @@
 package reactiverogue.core
 
+import com.whisk.docker.scalatest.DockerTestKit
 import org.scalatest.Suite
 import reactivemongo.api.{ DefaultDB, MongoConnection, MongoDriver }
-import whisk.docker.DockerMongodbService
-import whisk.docker.test.DockerTestKit
 
 trait TestMongoInstance extends DockerTestKit with DockerMongodbService { self: Suite =>
 
