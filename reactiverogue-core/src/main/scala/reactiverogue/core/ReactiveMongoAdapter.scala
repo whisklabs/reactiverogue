@@ -84,7 +84,7 @@ class ReactiveMongoAdapter[MB] {
 
     runCommand(description, queryClause) {
       val coll = queryCollection(query)
-      coll.distinct[BSONValue](key, selector = Some(cnd)).map { values =>
+      coll.distinct[BSONValue, List](key, selector = Some(cnd)).map { values =>
         val first :: rest = key.split("\\.").toList
         val docFunc: BSONValue => BSONDocument =
           rest.foldLeft[BSONValue => BSONDocument](v => BSONDocument(first -> v)) {
