@@ -10,13 +10,13 @@ import scala.concurrent.duration._
 trait TestMongoInstance extends DockerTestKit with DockerMongodbService { self: Suite =>
 
   def mongodbPort: Int = mongodbContainer.getPorts().futureValue.apply(DefaultMongodbPort)
-  def mongodbHost: String = docker.host
+  def mongodbHost: String = dockerExecutor.host
 
   def mongoUri = s"mongodb://$mongodbHost:$mongodbPort/test"
 
   protected implicit var mongodb: DefaultDB = _
 
-  override def beforeAll() = {
+  override def beforeAll(): Unit = {
     super.beforeAll()
     val driver = new MongoDriver
     val uri = MongoConnection.parseURI(mongoUri).get
@@ -25,7 +25,7 @@ trait TestMongoInstance extends DockerTestKit with DockerMongodbService { self: 
       15.seconds)
   }
 
-  override def afterAll() = {
+  override def afterAll(): Unit = {
     mongodb.connection.close()
   }
 }

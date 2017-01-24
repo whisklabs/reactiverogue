@@ -122,8 +122,8 @@ object BSONSerializable {
     override def fromBSONValue = {
       case doc: BSONDocument =>
         val ev = implicitly[BSONSerializable[T]]
-        val seq = doc.elements.toSeq.collect {
-          case (key, v) if ev.fromBSONValue.isDefinedAt(v) =>
+        val seq = doc.elements.collect {
+          case BSONElement(key, v) if ev.fromBSONValue.isDefinedAt(v) =>
             key -> ev.fromBSONValue(v)
         }
         seq.toMap

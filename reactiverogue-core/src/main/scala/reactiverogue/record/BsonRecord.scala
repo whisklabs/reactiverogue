@@ -261,7 +261,7 @@ trait BsonMetaRecord[BaseRecord <: BsonRecord[BaseRecord]] { self: BaseRecord =>
     */
   def setFieldsFromBSONDocument(inst: BaseRecord, document: BSONDocument): Unit = {
     for {
-      (f, v) <- document.elements
+      BSONElement(f, v) <- document.elements
       field <- inst.fieldByName(f)
     } {
       field.setFromBSONValue(v)

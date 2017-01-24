@@ -1,8 +1,9 @@
 package reactiverogue.core
 
-import com.whisk.docker.{DockerContainer, DockerKit, DockerReadyChecker}
+import com.whisk.docker.impl.spotify.DockerKitSpotify
+import com.whisk.docker.{DockerContainer, DockerReadyChecker}
 
-trait DockerMongodbService extends DockerKit {
+trait DockerMongodbService extends DockerKitSpotify {
 
   val DefaultMongodbPort = 27017
 
