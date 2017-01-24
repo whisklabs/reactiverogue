@@ -3,7 +3,8 @@ package field
 
 import reactiverogue.bson.BSONSerializable
 
-class MongoListField[OwnerType <: BsonRecord[OwnerType], ListType: BSONSerializable](rec: OwnerType)
+class MongoListField[OwnerType <: BsonRecord[OwnerType], ListType: BSONSerializable](
+    rec: OwnerType)
     extends DirectBsonField[List[ListType]]
     with RequiredRecordField[List[ListType], OwnerType] {
 

@@ -19,15 +19,20 @@ package field
 
 import reactivemongo.bson._
 
-class BsonRecordField[OwnerType <: BsonRecord[OwnerType], SubRecordType <: BsonRecord[SubRecordType]](rec: OwnerType, valueMeta: BsonMetaRecord[SubRecordType])(implicit subRecordType: Manifest[SubRecordType])
+class BsonRecordField[OwnerType <: BsonRecord[OwnerType],
+                      SubRecordType <: BsonRecord[SubRecordType]](
+    rec: OwnerType,
+    valueMeta: BsonMetaRecord[SubRecordType])(implicit subRecordType: Manifest[SubRecordType])
     extends RequiredRecordField[SubRecordType, OwnerType] {
 
-  def this(rec: OwnerType, valueMeta: BsonMetaRecord[SubRecordType], value: SubRecordType)(implicit subRecordType: Manifest[SubRecordType]) = {
+  def this(rec: OwnerType, valueMeta: BsonMetaRecord[SubRecordType], value: SubRecordType)(
+      implicit subRecordType: Manifest[SubRecordType]) = {
     this(rec, value.meta)
     set(value)
   }
 
-  def this(rec: OwnerType, valueMeta: BsonMetaRecord[SubRecordType], value: Option[SubRecordType])(implicit subRecordType: Manifest[SubRecordType]) = {
+  def this(rec: OwnerType, valueMeta: BsonMetaRecord[SubRecordType], value: Option[SubRecordType])(
+      implicit subRecordType: Manifest[SubRecordType]) = {
     this(rec, valueMeta)
     setOption(value)
   }

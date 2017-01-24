@@ -20,8 +20,8 @@ package field
 import reactivemongo.bson._
 
 /*
-* Field for storing an ObjectId
-*/
+ * Field for storing an ObjectId
+ */
 class ObjectIdField[OwnerType <: BsonRecord[OwnerType]](rec: OwnerType)
     extends DirectBsonField[BSONObjectID]
     with RequiredRecordField[BSONObjectID, OwnerType] {
@@ -30,4 +30,3 @@ class ObjectIdField[OwnerType <: BsonRecord[OwnerType]](rec: OwnerType)
 
   def defaultValue = BSONObjectID.generate
 }
-

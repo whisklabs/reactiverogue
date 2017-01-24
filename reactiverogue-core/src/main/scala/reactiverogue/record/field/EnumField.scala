@@ -16,10 +16,14 @@ trait EnumTypedField[EnumType <: Enumeration] extends BsonField[EnumType#Value] 
   }
 }
 
-class EnumField[OwnerType <: BsonRecord[OwnerType], EnumType <: Enumeration](rec: OwnerType, protected val enum: EnumType)(implicit m: Manifest[EnumType#Value])
-    extends RequiredRecordField[EnumType#Value, OwnerType] with EnumTypedField[EnumType] {
+class EnumField[OwnerType <: BsonRecord[OwnerType], EnumType <: Enumeration](
+    rec: OwnerType,
+    protected val enum: EnumType)(implicit m: Manifest[EnumType#Value])
+    extends RequiredRecordField[EnumType#Value, OwnerType]
+    with EnumTypedField[EnumType] {
 
-  def this(rec: OwnerType, enum: EnumType, value: EnumType#Value)(implicit m: Manifest[EnumType#Value]) = {
+  def this(rec: OwnerType, enum: EnumType, value: EnumType#Value)(
+      implicit m: Manifest[EnumType#Value]) = {
     this(rec, enum)
     set(value)
   }
@@ -30,10 +34,14 @@ class EnumField[OwnerType <: BsonRecord[OwnerType], EnumType <: Enumeration](rec
   protected val valueManifest = m
 }
 
-class OptionalEnumField[OwnerType <: BsonRecord[OwnerType], EnumType <: Enumeration](rec: OwnerType, protected val enum: EnumType)(implicit m: Manifest[EnumType#Value])
-    extends OptionalRecordField[EnumType#Value, OwnerType] with EnumTypedField[EnumType] {
+class OptionalEnumField[OwnerType <: BsonRecord[OwnerType], EnumType <: Enumeration](
+    rec: OwnerType,
+    protected val enum: EnumType)(implicit m: Manifest[EnumType#Value])
+    extends OptionalRecordField[EnumType#Value, OwnerType]
+    with EnumTypedField[EnumType] {
 
-  def this(rec: OwnerType, enum: EnumType, value: Option[EnumType#Value])(implicit m: Manifest[EnumType#Value]) = {
+  def this(rec: OwnerType, enum: EnumType, value: Option[EnumType#Value])(
+      implicit m: Manifest[EnumType#Value]) = {
     this(rec, enum)
     setOption(value)
   }
@@ -41,4 +49,3 @@ class OptionalEnumField[OwnerType <: BsonRecord[OwnerType], EnumType <: Enumerat
   def owner = rec
   protected val valueManifest = m
 }
-

@@ -1,6 +1,6 @@
 package reactiverogue.core
 
-import com.whisk.docker.{ DockerContainer, DockerKit, DockerReadyChecker }
+import com.whisk.docker.{DockerContainer, DockerKit, DockerReadyChecker}
 
 trait DockerMongodbService extends DockerKit {
 

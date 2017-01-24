@@ -16,10 +16,14 @@ trait EnumNameTypedField[EnumType <: Enumeration] extends BsonField[EnumType#Val
   }
 }
 
-class EnumNameField[OwnerType <: BsonRecord[OwnerType], EnumType <: Enumeration](rec: OwnerType, protected val enum: EnumType)(implicit m: Manifest[EnumType#Value])
-    extends RequiredRecordField[EnumType#Value, OwnerType] with EnumNameTypedField[EnumType] {
+class EnumNameField[OwnerType <: BsonRecord[OwnerType], EnumType <: Enumeration](
+    rec: OwnerType,
+    protected val enum: EnumType)(implicit m: Manifest[EnumType#Value])
+    extends RequiredRecordField[EnumType#Value, OwnerType]
+    with EnumNameTypedField[EnumType] {
 
-  def this(rec: OwnerType, enum: EnumType, value: EnumType#Value)(implicit m: Manifest[EnumType#Value]) = {
+  def this(rec: OwnerType, enum: EnumType, value: EnumType#Value)(
+      implicit m: Manifest[EnumType#Value]) = {
     this(rec, enum)
     set(value)
   }
@@ -30,10 +34,14 @@ class EnumNameField[OwnerType <: BsonRecord[OwnerType], EnumType <: Enumeration]
   protected val valueManifest = m
 }
 
-class OptionalEnumNameField[OwnerType <: BsonRecord[OwnerType], EnumType <: Enumeration](rec: OwnerType, protected val enum: EnumType)(implicit m: Manifest[EnumType#Value])
-    extends OptionalRecordField[EnumType#Value, OwnerType] with EnumNameTypedField[EnumType] {
+class OptionalEnumNameField[OwnerType <: BsonRecord[OwnerType], EnumType <: Enumeration](
+    rec: OwnerType,
+    protected val enum: EnumType)(implicit m: Manifest[EnumType#Value])
+    extends OptionalRecordField[EnumType#Value, OwnerType]
+    with EnumNameTypedField[EnumType] {
 
-  def this(rec: OwnerType, enum: EnumType, value: Option[EnumType#Value])(implicit m: Manifest[EnumType#Value]) = {
+  def this(rec: OwnerType, enum: EnumType, value: Option[EnumType#Value])(
+      implicit m: Manifest[EnumType#Value]) = {
     this(rec, enum)
     setOption(value)
   }
@@ -41,4 +49,3 @@ class OptionalEnumNameField[OwnerType <: BsonRecord[OwnerType], EnumType <: Enum
   def owner = rec
   protected val valueManifest = m
 }
-

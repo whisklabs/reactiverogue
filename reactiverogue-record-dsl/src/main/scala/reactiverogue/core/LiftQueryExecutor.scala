@@ -5,16 +5,17 @@ import reactiverogue.core.MongoHelpers.MongoSelect
 import reactiverogue.record.field.BsonRecordField
 import reactiverogue.record.{BsonRecord, MongoMetaRecord, MongoRecord}
 
-
 object LiftAdapter extends ReactiveMongoAdapter[MongoRecord[_] with MongoMetaRecord[_]]
 
-class LiftQueryExecutor(override val adapter: ReactiveMongoAdapter[MongoRecord[_] with MongoMetaRecord[_]]) extends QueryExecutor[MongoRecord[_] with MongoMetaRecord[_]] {
+class LiftQueryExecutor(
+    override val adapter: ReactiveMongoAdapter[MongoRecord[_] with MongoMetaRecord[_]])
+    extends QueryExecutor[MongoRecord[_] with MongoMetaRecord[_]] {
   override def defaultWriteConcern = QueryHelpers.config.defaultWriteConcern
   override lazy val optimizer = new QueryOptimizer
 
   override protected def serializer[M <: MongoRecord[_] with MongoMetaRecord[_], R](
-    meta: M,
-    select: Option[MongoSelect[M, R]]): RogueSerializer[R] = {
+      meta: M,
+      select: Option[MongoSelect[M, R]]): RogueSerializer[R] = {
     new RogueSerializer[R] {
       override def fromBSONDocument(dbo: BSONDocument): R = select match {
         case Some(MongoSelect(Nil, transformer)) =>
@@ -29,7 +30,8 @@ class LiftQueryExecutor(override val adapter: ReactiveMongoAdapter[MongoRecord[_
 
           val values =
             fields.map(fld => {
-              val valueOpt = LiftQueryExecutorHelpers.setInstanceFieldFromDbo(inst, dbo, fld.field.name)
+              val valueOpt =
+                LiftQueryExecutorHelpers.setInstanceFieldFromDbo(inst, dbo, fld.field.name)
               fld.valueOrDefault(valueOpt)
             })
 
@@ -46,7 +48,9 @@ object LiftQueryExecutor extends LiftQueryExecutor(LiftAdapter)
 object LiftQueryExecutorHelpers {
   import reactiverogue.record.{RecordField => LField}
 
-  def setInstanceFieldFromDboList(instance: BsonRecord[_], doc: BSONDocument, fieldNames: List[String]): Option[_] = {
+  def setInstanceFieldFromDboList(instance: BsonRecord[_],
+                                  doc: BSONDocument,
+                                  fieldNames: List[String]): Option[_] = {
     fieldNames match {
       case last :: Nil =>
         val fld: Option[LField[_, _]] = instance.fieldByName(last)
@@ -58,11 +62,15 @@ object LiftQueryExecutorHelpers {
           case Some(list: BSONArray) => fallbackValueFromDbObject(doc, fieldNames)
           case _ => None
         }
-      case Nil => throw new UnsupportedOperationException("was called with empty list, shouldn't possibly happen")
+      case Nil =>
+        throw new UnsupportedOperationException(
+          "was called with empty list, shouldn't possibly happen")
     }
   }
 
-  def setFieldFromDbo(field: LField[_, _], dbo: BSONDocument, fieldNames: List[String]): Option[_] = {
+  def setFieldFromDbo(field: LField[_, _],
+                      dbo: BSONDocument,
+                      fieldNames: List[String]): Option[_] = {
     field match {
       case brf: BsonRecordField[_, _] =>
         val inner = brf.value.asInstanceOf[BsonRecord[_]]
@@ -76,7 +84,9 @@ object LiftQueryExecutorHelpers {
     dbo.get(fieldName).flatMap(field.setFromBSONValue)
   }
 
-  def setInstanceFieldFromDbo(instance: MongoRecord[_], dbo: BSONDocument, fieldName: String): Option[_] = {
+  def setInstanceFieldFromDbo(instance: MongoRecord[_],
+                              dbo: BSONDocument,
+                              fieldName: String): Option[_] = {
     fieldName.contains(".") match {
       case true =>
         val names = fieldName.split("\\.").toList
@@ -102,7 +112,11 @@ object LiftQueryExecutorHelpers {
     Option(fieldNames.foldLeft(dbo: AnyRef)((obj: AnyRef, fieldName: String) => {
       obj match {
         case dbl: BSONArray =>
-          dbl.values.map(_.asInstanceOf[BSONDocument]).flatMap(_.get(fieldName)).collect(bsonValueToAnyRef).toList
+          dbl.values
+            .map(_.asInstanceOf[BSONDocument])
+            .flatMap(_.get(fieldName))
+            .collect(bsonValueToAnyRef)
+            .toList
         case dbo: BSONDocument =>
           dbo.get(fieldName).collectFirst[AnyRef](bsonValueToAnyRef).orNull
         case null => null

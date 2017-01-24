@@ -20,7 +20,8 @@ package field
 import reactivemongo.bson._
 
 class DoubleField[OwnerType <: BsonRecord[OwnerType]](rec: OwnerType)
-    extends DirectBsonField[Double] with RequiredRecordField[Double, OwnerType] {
+    extends DirectBsonField[Double]
+    with RequiredRecordField[Double, OwnerType] {
 
   override def defaultValue: Double = null.asInstanceOf[Double]
 
@@ -33,7 +34,8 @@ class DoubleField[OwnerType <: BsonRecord[OwnerType]](rec: OwnerType)
 }
 
 class OptionalDoubleField[OwnerType <: BsonRecord[OwnerType]](rec: OwnerType)
-    extends DirectBsonField[Double] with OptionalRecordField[Double, OwnerType] {
+    extends DirectBsonField[Double]
+    with OptionalRecordField[Double, OwnerType] {
 
   def this(rec: OwnerType, value: Option[Double]) = {
     this(rec)
@@ -42,4 +44,3 @@ class OptionalDoubleField[OwnerType <: BsonRecord[OwnerType]](rec: OwnerType)
 
   def owner = rec
 }
-

@@ -2,7 +2,7 @@ package reactiverogue.record
 package field
 
 import reactivemongo.bson._
-import play.api.libs.json.{ JsObject, Format }
+import play.api.libs.json.{JsObject, Format}
 import reactivemongo.play.json.BSONFormats
 
 class JsObjectListField[OwnerType <: BsonRecord[OwnerType], T: Format](rec: OwnerType)
@@ -18,8 +18,8 @@ class JsObjectListField[OwnerType <: BsonRecord[OwnerType], T: Format](rec: Owne
   }
 
   def asBSONValue: BSONValue =
-    valueOpt.map(v =>
-      BSONArray(v.map(valueToBsonValue)))
+    valueOpt
+      .map(v => BSONArray(v.map(valueToBsonValue)))
       .getOrElse(BSONArray())
 
   def setFromBSONValue(value: BSONValue): Option[List[T]] = {
@@ -27,7 +27,9 @@ class JsObjectListField[OwnerType <: BsonRecord[OwnerType], T: Format](rec: Owne
       case BSONArray(arr) =>
         val res = arr.toList.flatMap {
           case scala.util.Success(d: BSONDocument) =>
-            implicitly[Format[T]].reads(BSONFormats.BSONDocumentFormat.writes(d).as[JsObject]).asOpt
+            implicitly[Format[T]]
+              .reads(BSONFormats.BSONDocumentFormat.writes(d).as[JsObject])
+              .asOpt
           case _ =>
             None
         }

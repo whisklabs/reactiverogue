@@ -1,4 +1,3 @@
-
 package reactiverogue.core
 
 import java.util.Date
@@ -8,11 +7,11 @@ import scala.language.implicitConversions
 import reactivemongo.bson._
 
 /**
- * A utility trait containing typing shorthands, and a collection of implicit conversions that make query
- * syntax much simpler.
- *
- * @see AbstractQuery for an example of the use of implicit conversions.
- */
+  * A utility trait containing typing shorthands, and a collection of implicit conversions that make query
+  * syntax much simpler.
+  *
+  * @see AbstractQuery for an example of the use of implicit conversions.
+  */
 trait Rogue {
 
   // QueryField implicits
@@ -35,11 +34,11 @@ trait Rogue {
 //  implicit def rmapFieldToMapQueryField[M, F](f: Field[Map[String, F], M]): MapQueryField[F, M] = new MapQueryField[F, M](f)
 
   /**
-   * ModifyField implicits
-   *
-   * These are dangerous in the general case, unless the field type can be safely serialized
-   * or the field class handles necessary serialization. We specialize some safe cases.
-   */
+    * ModifyField implicits
+    *
+    * These are dangerous in the general case, unless the field type can be safely serialized
+    * or the field class handles necessary serialization. We specialize some safe cases.
+    */
 //  implicit def rfieldToSafeModifyField[M, F](f: Field[F, M]): SafeModifyField[F, M] = new SafeModifyField(f)
 //  implicit def booleanRFieldToModifyField[M](f: Field[Boolean, M]): ModifyField[Boolean, M] = new ModifyField(f)
   //  implicit def charRFieldToModifyField[M](f: Field[Char, M]): ModifyField[Char, M] = new ModifyField(f)

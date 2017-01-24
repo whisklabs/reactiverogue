@@ -40,8 +40,8 @@ trait BsonField[T] {
   }
 
   /**
-   * The text name of this field
-   */
+    * The text name of this field
+    */
   def name: String = fieldName
 
   private[record] final def setName_!(newName: String): String = {
@@ -63,12 +63,15 @@ trait BsonField[T] {
   def valueOpt: Option[T] = data
 }
 
-trait OwnedField[T, OwnerType <: BsonRecord[OwnerType]] extends BsonField[T] with RField[T, OwnerType]
+trait OwnedField[T, OwnerType <: BsonRecord[OwnerType]]
+    extends BsonField[T]
+    with RField[T, OwnerType]
 
 abstract class DirectBsonField[T: BSONSerializable] extends BsonField[T] {
 
   def asBSONValue: BSONValue = {
-    val opt = if (isOptional || valueOpt.isDefined) valueOpt else setOption(toOptionValue(defaultValue))
+    val opt =
+      if (isOptional || valueOpt.isDefined) valueOpt else setOption(toOptionValue(defaultValue))
     opt.map(BSONSerializable[T].asBSONValue).getOrElse(BSONUndefined)
   }
 
@@ -93,8 +96,8 @@ trait MandatoryTypedField[T] extends BsonField[T] {
   def value: T = valueOpt.getOrElse(defaultValue)
 
   /**
-   * The default value of the field when a field has no value set and is optional, or a method that must return a value (e.g. value) is used
-   */
+    * The default value of the field when a field has no value set and is optional, or a method that must return a value (e.g. value) is used
+    */
   def defaultValue: ValueType
 
   def isOptional: Boolean = false
@@ -103,9 +106,9 @@ trait MandatoryTypedField[T] extends BsonField[T] {
 trait OptionalTypedField[T] extends BsonField[T] {
 
   /**
-   * ValueType represents the type that users will work with.  For OptionalTypedField, this is
-   * equal to Option[ThisType].
-   */
+    * ValueType represents the type that users will work with.  For OptionalTypedField, this is
+    * equal to Option[ThisType].
+    */
   type ValueType = Option[T]
 
   override def set(in: Option[T]): Option[T] = setOption(in).orElse(defaultValue)
@@ -122,9 +125,11 @@ trait OptionalTypedField[T] extends BsonField[T] {
 }
 
 /**
- * A simple field that can store and retrieve a value of a given type
- */
-trait RecordField[T, OwnerType <: BsonRecord[OwnerType]] extends OwnedField[T, OwnerType] with BsonField[T] {
+  * A simple field that can store and retrieve a value of a given type
+  */
+trait RecordField[T, OwnerType <: BsonRecord[OwnerType]]
+    extends OwnedField[T, OwnerType]
+    with BsonField[T] {
 
   def apply(in: T): OwnerType = apply(Some(in))
 
@@ -134,6 +139,12 @@ trait RecordField[T, OwnerType <: BsonRecord[OwnerType]] extends OwnedField[T, O
   }
 }
 
-trait RequiredRecordField[T, OwnerType <: BsonRecord[OwnerType]] extends RecordField[T, OwnerType] with MandatoryTypedField[T] with RequiredField[T, OwnerType]
+trait RequiredRecordField[T, OwnerType <: BsonRecord[OwnerType]]
+    extends RecordField[T, OwnerType]
+    with MandatoryTypedField[T]
+    with RequiredField[T, OwnerType]
 
-trait OptionalRecordField[T, OwnerType <: BsonRecord[OwnerType]] extends RecordField[T, OwnerType] with OptionalTypedField[T] with OptionalField[T, OwnerType]
+trait OptionalRecordField[T, OwnerType <: BsonRecord[OwnerType]]
+    extends RecordField[T, OwnerType]
+    with OptionalTypedField[T]
+    with OptionalField[T, OwnerType]

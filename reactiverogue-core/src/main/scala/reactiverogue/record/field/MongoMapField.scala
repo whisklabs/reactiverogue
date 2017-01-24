@@ -19,8 +19,10 @@ package field
 
 import reactiverogue.bson.BSONSerializable
 
-class MongoMapField[OwnerType <: BsonRecord[OwnerType], MapValueType: BSONSerializable](rec: OwnerType)
-    extends DirectBsonField[Map[String, MapValueType]] with RecordField[Map[String, MapValueType], OwnerType]
+class MongoMapField[OwnerType <: BsonRecord[OwnerType], MapValueType: BSONSerializable](
+    rec: OwnerType)
+    extends DirectBsonField[Map[String, MapValueType]]
+    with RecordField[Map[String, MapValueType], OwnerType]
     with MandatoryTypedField[Map[String, MapValueType]] {
 
   def owner = rec
@@ -28,4 +30,3 @@ class MongoMapField[OwnerType <: BsonRecord[OwnerType], MapValueType: BSONSerial
   def defaultValue = Map[String, MapValueType]()
 
 }
-

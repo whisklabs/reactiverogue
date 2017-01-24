@@ -28,12 +28,11 @@ import java.lang.reflect.Method
 import scala.language.existentials
 
 /** Specialized Record that can be encoded and decoded from BSON (DBObject) */
-trait BsonRecord[MyType <: BsonRecord[MyType]] {
-  self: MyType =>
+trait BsonRecord[MyType <: BsonRecord[MyType]] { self: MyType =>
 
   /**
-   * Get the fields defined on the meta object for this record instance
-   */
+    * Get the fields defined on the meta object for this record instance
+    */
   def fields() = meta.fields(this)
 
   def allFields = fields()
@@ -42,14 +41,15 @@ trait BsonRecord[MyType <: BsonRecord[MyType]] {
   def meta: BsonMetaRecord[MyType]
 
   /**
-   * Encode a record instance into a DBObject
-   */
+    * Encode a record instance into a DBObject
+    */
   def asBSONDocument: BSONDocument = meta.asBSONDocument(this)
 
   /**
-   * Set the fields of this record from the given DBObject
-   */
-  def setFieldsFromBSONDocument(dbo: BSONDocument): Unit = meta.setFieldsFromBSONDocument(this, dbo)
+    * Set the fields of this record from the given DBObject
+    */
+  def setFieldsFromBSONDocument(dbo: BSONDocument): Unit =
+    meta.setFieldsFromBSONDocument(this, dbo)
 
   //  def asJValue: JValue =
   //    JObjectParser.serialize(asBSONDocument)(meta.formats)
@@ -57,7 +57,8 @@ trait BsonRecord[MyType <: BsonRecord[MyType]] {
   //  def setFieldsFromJValue(jvalue: JValue): Unit =
   //    setFieldsFromBSONDocument(JObjectParser.parse(asJValue.asInstanceOf[JObject])(meta.formats))
 
-  def fieldByName(fieldName: String): Option[RecordField[_, MyType]] = meta.fieldByName(fieldName, this)
+  def fieldByName(fieldName: String): Option[RecordField[_, MyType]] =
+    meta.fieldByName(fieldName, this)
 
   override def equals(other: Any): Boolean = {
     other match {
@@ -73,23 +74,23 @@ trait BsonRecord[MyType <: BsonRecord[MyType]] {
 
   override def toString = {
 
-    "<" + this.getClass.getSimpleName + ": " + Json.stringify(BSONFormats.BSONDocumentFormat.writes(asBSONDocument)) + ">"
+    "<" + this.getClass.getSimpleName + ": " + Json.stringify(
+      BSONFormats.BSONDocumentFormat.writes(asBSONDocument)) + ">"
   }
 
 }
 
 /** Specialized MetaRecord that deals with BsonRecords */
-trait BsonMetaRecord[BaseRecord <: BsonRecord[BaseRecord]] {
-  self: BaseRecord =>
+trait BsonMetaRecord[BaseRecord <: BsonRecord[BaseRecord]] { self: BaseRecord =>
 
   private var fieldList: List[FieldHolder] = Nil
   private var fieldMap: Map[String, FieldHolder] = Map.empty
 
   /**
-   * Defines the order of the fields in this record
-   *
-   * @return a List of Field
-   */
+    * Defines the order of the fields in this record
+    *
+    * @return a List of Field
+    */
   def fieldOrder: List[RecordField[_, BaseRecord]] = Nil
 
   protected val rootClass = this.getClass.getSuperclass
@@ -99,22 +100,26 @@ trait BsonMetaRecord[BaseRecord <: BsonRecord[BaseRecord]] {
     ret
   }
 
-  def introspect(rec: BaseRecord, methods: Array[Method])(f: (Method, RecordField[_, BaseRecord]) => Any): Unit = {
+  def introspect(rec: BaseRecord, methods: Array[Method])(
+      f: (Method, RecordField[_, BaseRecord]) => Any): Unit = {
 
     // find all the potential fields
     val potentialFields = methods.toList.filter(isField)
 
     // any fields with duplicate names get put into a List
-    val map: Map[String, List[Method]] = potentialFields.foldLeft[Map[String, List[Method]]](Map()) {
-      case (map, method) =>
-        val name = method.getName
-        map + (name -> (method :: map.getOrElse(name, Nil)))
-    }
+    val map: Map[String, List[Method]] =
+      potentialFields.foldLeft[Map[String, List[Method]]](Map()) {
+        case (map, method) =>
+          val name = method.getName
+          map + (name -> (method :: map.getOrElse(name, Nil)))
+      }
 
     // sort each list based on having the most specific type and use that method
-    val realMeth = map.values.map(_.sortWith {
-      case (a, b) => !a.getReturnType.isAssignableFrom(b.getReturnType)
-    }).map(_.head)
+    val realMeth = map.values
+      .map(_.sortWith {
+        case (a, b) => !a.getReturnType.isAssignableFrom(b.getReturnType)
+      })
+      .map(_.head)
 
     for (v <- realMeth) {
       v.invoke(rec) match {
@@ -145,8 +150,8 @@ trait BsonMetaRecord[BaseRecord <: BsonRecord[BaseRecord]] {
   }
 
   /**
-   * Creates a new record
-   */
+    * Creates a new record
+    */
   def createRecord: BaseRecord = {
     val rec = instantiateRecord
     fieldList.foreach(fh => fh.field(rec).setName_!(fh.name))
@@ -157,22 +162,22 @@ trait BsonMetaRecord[BaseRecord <: BsonRecord[BaseRecord]] {
   protected def instantiateRecord: BaseRecord = rootClass.newInstance.asInstanceOf[BaseRecord]
 
   /**
-   * Get a field by the field name
-   * @param fieldName -- the name of the field to get
-   * @param actual -- the instance to get the field on
-   *
-   * @return Box[The Field] (Empty if the field is not found)
-   */
+    * Get a field by the field name
+    * @param fieldName -- the name of the field to get
+    * @param actual -- the instance to get the field on
+    *
+    * @return Box[The Field] (Empty if the field is not found)
+    */
   def fieldByName(fieldName: String, inst: BaseRecord): Option[RecordField[_, BaseRecord]] = {
     fieldMap.get(fieldName).map(_.field(inst))
   }
 
   /**
-   * Populate the fields of the record with values from an existing record
-   *
-   * @param inst - The record to populate
-   * @param rec - The Record to read from
-   */
+    * Populate the fields of the record with values from an existing record
+    *
+    * @param inst - The record to populate
+    * @param rec - The Record to read from
+    */
   def setFieldsFromRecord(inst: BaseRecord, rec: BaseRecord) {
     for {
       fh <- fieldList
@@ -189,26 +194,26 @@ trait BsonMetaRecord[BaseRecord <: BsonRecord[BaseRecord]] {
   }
 
   /**
-   * Renamed from fields() due to a clash with fields() in Record. Use this method
-   * to obtain a list of fields defined in the meta companion objects. Possibly a
-   * breaking change? (added 14th August 2009, Tim Perrett)
-   *
-   * @see Record
-   */
+    * Renamed from fields() due to a clash with fields() in Record. Use this method
+    * to obtain a list of fields defined in the meta companion objects. Possibly a
+    * breaking change? (added 14th August 2009, Tim Perrett)
+    *
+    * @see Record
+    */
   def metaFields(): List[RecordField[_, BaseRecord]] = fieldList.map(_.metaField)
 
   /**
-   * Obtain the fields for a particular Record or subclass instance by passing
-   * the instance itself.
-   * (added 14th August 2009, Tim Perrett)
-   */
+    * Obtain the fields for a particular Record or subclass instance by passing
+    * the instance itself.
+    * (added 14th August 2009, Tim Perrett)
+    */
   def fields(rec: BaseRecord): List[RecordField[_, BaseRecord]] = fieldList.map(_.field(rec))
 
   /**
-   * Create a BSONDocument from the field names and values.
-   * - MongoFieldFlavor types (List) are converted to BSONDocuments
-   *   using asBSONDocument
-   */
+    * Create a BSONDocument from the field names and values.
+    * - MongoFieldFlavor types (List) are converted to BSONDocuments
+    *   using asBSONDocument
+    */
   def asBSONDocument(inst: BaseRecord): BSONDocument = {
 
     val fieldList =
@@ -229,11 +234,11 @@ trait BsonMetaRecord[BaseRecord <: BsonRecord[BaseRecord]] {
   }
 
   /**
-   * Creates a new record, then sets the fields with the given BSONDocument.
-   *
-   * @param document - the BSONDocument
-   * @return Box[BaseRecord]
-   */
+    * Creates a new record, then sets the fields with the given BSONDocument.
+    *
+    * @param document - the BSONDocument
+    * @return Box[BaseRecord]
+    */
   def fromBSONDocument(document: BSONDocument): BaseRecord = {
     val inst: BaseRecord = createRecord
     setFieldsFromBSONDocument(inst, document)
@@ -247,13 +252,13 @@ trait BsonMetaRecord[BaseRecord <: BsonRecord[BaseRecord]] {
   //  }
 
   /**
-   * Populate the inst's fields with the values from a BSONDocument. Values are set
-   * using setFromAny passing it the BSONDocument returned from Mongo.
-   *
-   * @param inst - the record that will be populated
-   * @param document - The BSONDocument
-   * @return Unit
-   */
+    * Populate the inst's fields with the values from a BSONDocument. Values are set
+    * using setFromAny passing it the BSONDocument returned from Mongo.
+    *
+    * @param inst - the record that will be populated
+    * @param document - The BSONDocument
+    * @return Unit
+    */
   def setFieldsFromBSONDocument(inst: BaseRecord, document: BSONDocument): Unit = {
     for {
       (f, v) <- document.elements
@@ -264,6 +269,7 @@ trait BsonMetaRecord[BaseRecord <: BsonRecord[BaseRecord]] {
   }
 
   case class FieldHolder(name: String, method: Method, metaField: RecordField[_, BaseRecord]) {
-    def field(inst: BaseRecord): RecordField[_, BaseRecord] = method.invoke(inst).asInstanceOf[RecordField[_, BaseRecord]]
+    def field(inst: BaseRecord): RecordField[_, BaseRecord] =
+      method.invoke(inst).asInstanceOf[RecordField[_, BaseRecord]]
   }
 }

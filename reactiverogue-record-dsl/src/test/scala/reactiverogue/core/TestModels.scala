@@ -130,7 +130,12 @@ case class V2(legacyid: Long, userid: Long)
 case class V3(legacyid: Long, userid: Long, mayor: Long)
 case class V4(legacyid: Long, userid: Long, mayor: Long, mayor_count: Long)
 case class V5(legacyid: Long, userid: Long, mayor: Long, mayor_count: Long, closed: Boolean)
-case class V6(legacyid: Long, userid: Long, mayor: Long, mayor_count: Long, closed: Boolean, tags: List[String])
+case class V6(legacyid: Long,
+              userid: Long,
+              mayor: Long,
+              mayor_count: Long,
+              closed: Boolean,
+              tags: List[String])
 
 class CalendarFld private () extends MongoRecord[CalendarFld] with ObjectIdPk[CalendarFld] {
   def meta = CalendarFld
@@ -149,4 +154,3 @@ class CalendarInner private () extends BsonRecord[CalendarInner] {
 }
 
 object CalendarInner extends CalendarInner with BsonMetaRecord[CalendarInner]
-

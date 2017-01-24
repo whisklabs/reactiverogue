@@ -69,7 +69,8 @@ object BSONSerializable {
       Pattern.LITERAL -> "t",
       Pattern.MULTILINE -> "m",
       Pattern.UNICODE_CASE -> "u",
-      Pattern.UNIX_LINES -> "d")
+      Pattern.UNIX_LINES -> "d"
+    )
 
     def flagsToString(flags: Int) = {
       (for {
@@ -112,7 +113,8 @@ object BSONSerializable {
     }
   }
 
-  class StringMapBSONTypesAreBSONTypes[T: BSONSerializable] extends BSONSerializable[Map[String, T]] {
+  class StringMapBSONTypesAreBSONTypes[T: BSONSerializable]
+      extends BSONSerializable[Map[String, T]] {
     override def asBSONValue(v: Map[String, T]): BSONValue = {
       BSONDocument(v.mapValues(BSONSerializable[T].asBSONValue).toSeq)
     }
@@ -128,7 +130,8 @@ object BSONSerializable {
     }
   }
 
-  implicit def StringMapBSONTypesAreBSONTypes[T: BSONSerializable]: BSONSerializable[Map[String, T]] =
+  implicit def StringMapBSONTypesAreBSONTypes[T: BSONSerializable]
+    : BSONSerializable[Map[String, T]] =
     new StringMapBSONTypesAreBSONTypes[T]
 
   class ListsOfBSONTypesAreBSONTypes[T: BSONSerializable] extends BSONSerializable[List[T]] {
@@ -146,5 +149,6 @@ object BSONSerializable {
     }
   }
 
-  implicit def ListsOfBSONTypesAreBSONTypes[T: BSONSerializable]: BSONSerializable[List[T]] = new ListsOfBSONTypesAreBSONTypes[T]
+  implicit def ListsOfBSONTypesAreBSONTypes[T: BSONSerializable]: BSONSerializable[List[T]] =
+    new ListsOfBSONTypesAreBSONTypes[T]
 }

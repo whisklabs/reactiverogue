@@ -2,7 +2,8 @@ package reactiverogue.record
 package field
 
 class StringField[OwnerType <: BsonRecord[OwnerType]](rec: OwnerType)
-    extends DirectBsonField[String] with RequiredRecordField[String, OwnerType] {
+    extends DirectBsonField[String]
+    with RequiredRecordField[String, OwnerType] {
 
   override def defaultValue = null.asInstanceOf[String]
 
@@ -15,7 +16,8 @@ class StringField[OwnerType <: BsonRecord[OwnerType]](rec: OwnerType)
 }
 
 class OptionalStringField[OwnerType <: BsonRecord[OwnerType]](rec: OwnerType)
-    extends DirectBsonField[String] with OptionalRecordField[String, OwnerType] {
+    extends DirectBsonField[String]
+    with OptionalRecordField[String, OwnerType] {
 
   def this(rec: OwnerType, value: Option[String]) = {
     this(rec)
@@ -24,4 +26,3 @@ class OptionalStringField[OwnerType <: BsonRecord[OwnerType]](rec: OwnerType)
 
   def owner = rec
 }
-

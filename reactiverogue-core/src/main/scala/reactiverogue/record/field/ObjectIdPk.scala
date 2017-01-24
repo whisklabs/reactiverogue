@@ -3,8 +3,7 @@ package field
 
 import reactivemongo.bson.BSONObjectID
 
-trait ObjectIdPk[OwnerType <: MongoRecord[OwnerType]] {
-  self: OwnerType =>
+trait ObjectIdPk[OwnerType <: MongoRecord[OwnerType]] { self: OwnerType =>
 
   def defaultIdValue = BSONObjectID.generate
 

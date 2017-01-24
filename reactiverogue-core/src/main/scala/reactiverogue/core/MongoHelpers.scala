@@ -27,12 +27,14 @@ object MongoHelpers extends Rogue {
     }
 
     def buildCondition(cond: AndCondition,
-      buffer: ListBuffer[(String, BSONValue)],
-      signature: Boolean): BSONDocument = {
+                       buffer: ListBuffer[(String, BSONValue)],
+                       signature: Boolean): BSONDocument = {
       val (rawClauses, safeClauses) = cond.clauses.partition(_.isInstanceOf[RawQueryClause])
 
       // Normal clauses
-      safeClauses.groupBy(_.fieldName).toList
+      safeClauses
+        .groupBy(_.fieldName)
+        .toList
         .sortBy { case (fieldName, _) => -cond.clauses.indexWhere(_.fieldName == fieldName) }
         .foreach {
           case (name, cs) =>
@@ -41,7 +43,10 @@ object MongoHelpers extends Rogue {
             // and can be chained like { a : { $gt : 2, $lt: 6 }}.
             // So if there is any equality clause, apply it (only) to the builder;
             // otherwise, chain the clauses.
-            cs.find({ i => i.isInstanceOf[EqClause[_, _]] || i.isInstanceOf[RegexQueryClause[_]] || i.isInstanceOf[TextSearchQueryClause] }) match {
+            cs.find({ i =>
+              i.isInstanceOf[EqClause[_, _]] || i.isInstanceOf[RegexQueryClause[_]] || i
+                .isInstanceOf[TextSearchQueryClause]
+            }) match {
               case Some(eqClause) => eqClause.extend(buffer, signature)
               case None =>
                 val nameBuff = ListBuffer.empty[(String, BSONValue)]
@@ -64,7 +69,9 @@ object MongoHelpers extends Rogue {
     }
 
     def buildOrder(o: MongoOrder): BSONDocument = {
-      val seq = o.terms.reverse.map { case (field, ascending) => field -> BSONInteger(if (ascending) 1 else -1) }
+      val seq = o.terms.reverse.map {
+        case (field, ascending) => field -> BSONInteger(if (ascending) 1 else -1)
+      }
       BSONDocument(seq)
     }
 
@@ -109,7 +116,9 @@ object MongoHelpers extends Rogue {
       BSONDocument(h)
     }
 
-    def buildQueryString[R, M](operation: String, collectionName: String, query: Query[M, R, _]): String = {
+    def buildQueryString[R, M](operation: String,
+                               collectionName: String,
+                               query: Query[M, R, _]): String = {
       val sb = new StringBuilder("db.%s.%s(".format(collectionName, operation))
       sb.append(buildCondition(query.condition, signature = false).str)
       query.select.foreach(s => sb.append("," + buildSelect(s).str))
@@ -123,15 +132,19 @@ object MongoHelpers extends Rogue {
       sb.toString()
     }
 
-    def buildConditionString[R, M](operation: String, collectionName: String, query: Query[M, R, _]): String = {
+    def buildConditionString[R, M](operation: String,
+                                   collectionName: String,
+                                   query: Query[M, R, _]): String = {
       val sb = new StringBuilder("db.%s.%s(".format(collectionName, operation))
       sb.append(buildCondition(query.condition, signature = false).str)
       sb.append(")")
       sb.toString()
     }
 
-    def buildModifyString[R, M](collectionName: String, modify: ModifyQuery[M, _],
-      upsert: Boolean = false, multi: Boolean = false): String = {
+    def buildModifyString[R, M](collectionName: String,
+                                modify: ModifyQuery[M, _],
+                                upsert: Boolean = false,
+                                multi: Boolean = false): String = {
       "db.%s.update(%s,%s,%s,%s)".format(
         collectionName,
         buildCondition(modify.query.condition, signature = false).str,
@@ -141,10 +154,15 @@ object MongoHelpers extends Rogue {
       )
     }
 
-    def buildFindAndModifyString[R, M](collectionName: String, mod: FindAndModifyQuery[M, R], returnNew: Boolean, upsert: Boolean, remove: Boolean): String = {
+    def buildFindAndModifyString[R, M](collectionName: String,
+                                       mod: FindAndModifyQuery[M, R],
+                                       returnNew: Boolean,
+                                       upsert: Boolean,
+                                       remove: Boolean): String = {
       val query = mod.query
-      val sb = new StringBuilder("db.%s.findAndModify({query:%s".format(
-        collectionName, buildCondition(query.condition).str))
+      val sb = new StringBuilder(
+        "db.%s.findAndModify({query:%s".format(collectionName,
+                                               buildCondition(query.condition).str))
       query.order.foreach(o => sb.append(",sort:" + buildOrder(o).str))
       if (remove) sb.append(",remove:true")
       sb.append(",update:" + buildModify(mod.mod).str)

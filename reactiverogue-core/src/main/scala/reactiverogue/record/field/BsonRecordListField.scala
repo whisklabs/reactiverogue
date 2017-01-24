@@ -6,7 +6,10 @@ import reactivemongo.bson._
 /*
  * List of BsonRecords
  */
-abstract class BsonRecordListField[OwnerType <: BsonRecord[OwnerType], SubRecordType <: BsonRecord[SubRecordType]](rec: OwnerType, valueMeta: BsonMetaRecord[SubRecordType])(implicit mf: Manifest[SubRecordType])
+abstract class BsonRecordListField[OwnerType <: BsonRecord[OwnerType],
+                                   SubRecordType <: BsonRecord[SubRecordType]](
+    rec: OwnerType,
+    valueMeta: BsonMetaRecord[SubRecordType])(implicit mf: Manifest[SubRecordType])
     extends RequiredRecordField[List[SubRecordType], OwnerType] {
 
   def owner: OwnerType = rec
@@ -20,7 +23,9 @@ abstract class BsonRecordListField[OwnerType <: BsonRecord[OwnerType], SubRecord
     BSONArray(value.map(_.asBSONDocument))
 
   def setFromBSONValue(value: BSONValue): Option[List[SubRecordType]] = value match {
-    case x: BSONArray => setOption(Some(x.values.collect({ case v: BSONDocument => valueMeta.fromBSONDocument(v) }).toList))
+    case x: BSONArray =>
+      setOption(
+        Some(x.values.collect({ case v: BSONDocument => valueMeta.fromBSONDocument(v) }).toList))
     case _ => setOption(None)
   }
 

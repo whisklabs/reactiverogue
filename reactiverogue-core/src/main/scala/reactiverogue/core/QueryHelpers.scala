@@ -74,7 +74,8 @@ object QueryHelpers {
   class DefaultQueryTransformer extends QueryTransformer {
     override def transformQuery[M](query: Query[M, _, _]): Query[M, _, _] = { query }
     override def transformModify[M](modify: ModifyQuery[M, _]): ModifyQuery[M, _] = { modify }
-    override def transformFindAndModify[M, R](modify: FindAndModifyQuery[M, R]): FindAndModifyQuery[M, R] = { modify }
+    override def transformFindAndModify[M, R](
+        modify: FindAndModifyQuery[M, R]): FindAndModifyQuery[M, R] = { modify }
   }
 
   object NoopQueryTransformer extends DefaultQueryTransformer

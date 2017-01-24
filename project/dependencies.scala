@@ -9,7 +9,7 @@ object dependencies {
   val playJson = "com.typesafe.play" %% "play-json" % "2.5.4"
   val reactivemongoBson = "org.reactivemongo" %% "reactivemongo-bson" % V.Reactivemongo
   val reactivemongoIteratees = "org.reactivemongo" %% "reactivemongo-iteratees" % V.Reactivemongo
-  val reactivemongoJson = "org.reactivemongo" %% "reactivemongo-play-json" % (V.Reactivemongo )
+  val reactivemongoJson = "org.reactivemongo" %% "reactivemongo-play-json" % (V.Reactivemongo)
   val reactivemongo = "org.reactivemongo" %% "reactivemongo" % V.Reactivemongo
 
   val junit = "junit" % "junit" % "4.12"

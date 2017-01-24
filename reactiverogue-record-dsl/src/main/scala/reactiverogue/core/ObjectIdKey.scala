@@ -7,10 +7,9 @@ import reactiverogue.record.field.ObjectIdField
 import reactivemongo.bson.BSONObjectID
 
 /**
- * Mix this into a Record to add an ObjectIdField
- */
-trait ObjectIdKey[OwnerType <: MongoRecord[OwnerType]] {
-  self: OwnerType =>
+  * Mix this into a Record to add an ObjectIdField
+  */
+trait ObjectIdKey[OwnerType <: MongoRecord[OwnerType]] { self: OwnerType =>
 
   object _id extends ObjectIdField(this.asInstanceOf[OwnerType])
 

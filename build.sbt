@@ -21,38 +21,33 @@ lazy val commonSettings = Seq(
           <url>https://github.com/viktortnk</url>
         </developer>
       </developers>
-  })
+  }
+)
 
 def module(name: String) =
   Project(name, file(name))
-    .settings(commonSettings:_*)
-    .settings(scalariformSettings:_*)
+    .settings(commonSettings: _*)
     .settings(
       scalacOptions ++= Seq("-feature", "-deprecation")
     )
 
 lazy val root =
-  project.in(file("."))
+  project
+    .in(file("."))
     .settings(commonSettings: _*)
-    .settings(
-      publish := {},
-      publishLocal := {},
-      packagedArtifacts := Map.empty)
+    .settings(publish := {}, publishLocal := {}, packagedArtifacts := Map.empty)
     .aggregate(bson, core, recordDsl)
 
 lazy val bson =
   module("reactiverogue-bson")
-    .settings(
-      libraryDependencies ++= bsonDependencies)
+    .settings(libraryDependencies ++= bsonDependencies)
 
 lazy val core =
   module("reactiverogue-core")
     .dependsOn(bson)
-    .settings(
-      libraryDependencies ++= coreDependencies)
+    .settings(libraryDependencies ++= coreDependencies)
 
 lazy val recordDsl =
   module("reactiverogue-record-dsl")
     .dependsOn(core)
-    .settings(
-      libraryDependencies ++= recordDslDependencies)
+    .settings(libraryDependencies ++= recordDslDependencies)
