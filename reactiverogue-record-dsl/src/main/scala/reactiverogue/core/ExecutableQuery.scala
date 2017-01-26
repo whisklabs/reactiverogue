@@ -1,9 +1,9 @@
 package reactiverogue.core
 
 import play.api.libs.iteratee.Enumerator
-import reactivemongo.api.DefaultDB
 import reactivemongo.api.commands.{WriteConcern, WriteResult}
 import reactiverogue.core.MongoHelpers.MongoSelect
+import reactiverogue.db.MongoResolution
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -15,7 +15,7 @@ case class ExecutableQuery[MB, M <: MB, R, State](
     * Gets the size of the query result. This should only be called on queries that do not
     * have limits or skips.
     */
-  def count()(implicit ec: ExecutionContext, _db: DefaultDB): Future[Int] =
+  def count()(implicit ec: ExecutionContext, _res: MongoResolution): Future[Int] =
     db.count(query)
 
   //  /**
@@ -30,7 +30,7 @@ case class ExecutableQuery[MB, M <: MB, R, State](
     * limit or skip clauses.
     */
   def distinct[V](field: M => SelectField[V, _])(implicit ec: ExecutionContext,
-                                                 _db: DefaultDB): Future[List[V]] = {
+                                                 _res: MongoResolution): Future[List[V]] = {
     db.distinct(query)(field)
   }
 
@@ -39,7 +39,7 @@ case class ExecutableQuery[MB, M <: MB, R, State](
     */
   def exists()(implicit ev: State <:< Unlimited with Unskipped,
                ec: ExecutionContext,
-               _db: DefaultDB): Future[Boolean] = {
+               _res: MongoResolution): Future[Boolean] = {
     val q = query.copy(select = Some(MongoSelect[M, Null](Nil, _ => null)))
     db.fetchOne(q).map(_.isDefined)
   }
@@ -49,14 +49,14 @@ case class ExecutableQuery[MB, M <: MB, R, State](
     * @param f a function to be invoked on each fetched record.
     * @return nothing.
     */
-  def foreach(f: R => Unit)(implicit ec: ExecutionContext, _db: DefaultDB): Unit =
+  def foreach(f: R => Unit)(implicit ec: ExecutionContext, _res: MongoResolution): Unit =
     db.foreach(query)(f)
 
   /**
     * Execute the query, returning all of the records that match the query.
     * @return a list containing the records that match the query
     */
-  def fetch()(implicit ec: ExecutionContext, _db: DefaultDB): Future[List[R]] =
+  def fetch()(implicit ec: ExecutionContext, _res: MongoResolution): Future[List[R]] =
     db.fetch(query)
 
   /**
@@ -67,10 +67,10 @@ case class ExecutableQuery[MB, M <: MB, R, State](
   def fetch[S2](limit: Int)(implicit ev1: AddLimit[State, S2],
                             ev2: ShardingOk[M, S2],
                             ec: ExecutionContext,
-                            _db: DefaultDB): Future[List[R]] =
+                            _res: MongoResolution): Future[List[R]] =
     db.fetch(query.limit(limit))
 
-  def fetchEnumerator()(implicit ec: ExecutionContext, _db: DefaultDB): Enumerator[R] =
+  def fetchEnumerator()(implicit ec: ExecutionContext, _res: MongoResolution): Enumerator[R] =
     db.fetchEnumerator(query)
 
   //  /**
@@ -89,7 +89,7 @@ case class ExecutableQuery[MB, M <: MB, R, State](
   def get[S2]()(implicit ev1: AddLimit[State, S2],
                 ev2: ShardingOk[M, S2],
                 ec: ExecutionContext,
-                _db: DefaultDB): Future[Option[R]] =
+                _res: MongoResolution): Future[Option[R]] =
     db.fetchOne(query)
 
   /**
@@ -100,7 +100,7 @@ case class ExecutableQuery[MB, M <: MB, R, State](
   def paginate(countPerPage: Int)(implicit ev1: Required[State, Unlimited with Unskipped],
                                   ev2: ShardingOk[M, State],
                                   ec: ExecutionContext,
-                                  _db: DefaultDB) = {
+                                  _res: MongoResolution) = {
     new PaginatedQuery(ev1(query), db, countPerPage)
   }
 
@@ -111,7 +111,7 @@ case class ExecutableQuery[MB, M <: MB, R, State](
     */
   def bulkDelete_!!!()(implicit ev1: Required[State, Unselected with Unlimited with Unskipped],
                        ec: ExecutionContext,
-                       _db: DefaultDB): Future[WriteResult] =
+                       _res: MongoResolution): Future[WriteResult] =
     db.bulkDelete_!!(query)
 
   /**
@@ -122,7 +122,7 @@ case class ExecutableQuery[MB, M <: MB, R, State](
   def bulkDelete_!!(concern: WriteConcern)(
       implicit ev1: Required[State, Unselected with Unlimited with Unskipped],
       ec: ExecutionContext,
-      _db: DefaultDB): Future[WriteResult] =
+      _res: MongoResolution): Future[WriteResult] =
     db.bulkDelete_!!(query, concern)
 
   /**
@@ -131,7 +131,7 @@ case class ExecutableQuery[MB, M <: MB, R, State](
     */
   def findAndDeleteOne()(implicit ev: RequireShardKey[M, State],
                          ec: ExecutionContext,
-                         _db: DefaultDB): Future[Option[R]] =
+                         _res: MongoResolution): Future[Option[R]] =
     db.findAndDeleteOne(query)
 
   //  /**
@@ -150,42 +150,42 @@ case class ExecutableQuery[MB, M <: MB, R, State](
 
 case class ExecutableModifyQuery[MB, M <: MB, State](query: ModifyQuery[M, State],
                                                      db: QueryExecutor[MB]) {
-  def updateMulti()(implicit ec: ExecutionContext, _db: DefaultDB): Future[WriteResult] =
+  def updateMulti()(implicit ec: ExecutionContext, _res: MongoResolution): Future[WriteResult] =
     db.updateMulti(query)
 
   def updateOne()(implicit ev: RequireShardKey[M, State],
                   ec: ExecutionContext,
-                  _db: DefaultDB): Future[WriteResult] =
+                  _res: MongoResolution): Future[WriteResult] =
     db.updateOne(query)
 
   def upsertOne()(implicit ev: RequireShardKey[M, State],
                   ec: ExecutionContext,
-                  _db: DefaultDB): Future[WriteResult] =
+                  _res: MongoResolution): Future[WriteResult] =
     db.upsertOne(query)
 
   def updateMulti(writeConcern: WriteConcern)(implicit ec: ExecutionContext,
-                                              _db: DefaultDB): Future[WriteResult] =
+                                              _res: MongoResolution): Future[WriteResult] =
     db.updateMulti(query, writeConcern)
 
   def updateOne(writeConcern: WriteConcern)(implicit ev: RequireShardKey[M, State],
                                             ec: ExecutionContext,
-                                            _db: DefaultDB): Future[WriteResult] =
+                                            _res: MongoResolution): Future[WriteResult] =
     db.updateOne(query, writeConcern)
 
   def upsertOne(writeConcern: WriteConcern)(implicit ev: RequireShardKey[M, State],
                                             ec: ExecutionContext,
-                                            _db: DefaultDB): Future[WriteResult] =
+                                            _res: MongoResolution): Future[WriteResult] =
     db.upsertOne(query, writeConcern)
 }
 
 case class ExecutableFindAndModifyQuery[MB, M <: MB, R](query: FindAndModifyQuery[M, R],
                                                         db: QueryExecutor[MB]) {
   def updateOne(returnNew: Boolean = false)(implicit ec: ExecutionContext,
-                                            _db: DefaultDB): Future[Option[R]] =
+                                            _res: MongoResolution): Future[Option[R]] =
     db.findAndUpdateOne(query, returnNew)
 
   def upsertOne(returnNew: Boolean = false)(implicit ec: ExecutionContext,
-                                            _db: DefaultDB): Future[Option[R]] =
+                                            _res: MongoResolution): Future[Option[R]] =
     db.findAndUpsertOne(query, returnNew)
 }
 
@@ -195,7 +195,7 @@ class PaginatedQuery[MB, M <: MB, R, +State <: Unlimited with Unskipped](q: Quer
                                                                          val pageNum: Int = 1)(
     implicit ev: ShardingOk[M, State],
     ec: ExecutionContext,
-    _db: DefaultDB) {
+    _res: MongoResolution) {
   def copy() = new PaginatedQuery(q, db, countPerPage, pageNum)
 
   def setPage(p: Int) = if (p == pageNum) this else new PaginatedQuery(q, db, countPerPage, p)

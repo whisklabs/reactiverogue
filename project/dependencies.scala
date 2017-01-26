@@ -13,7 +13,7 @@ object dependencies {
   val reactivemongo = "org.reactivemongo" %% "reactivemongo" % V.Reactivemongo
 
   val junit = "junit" % "junit" % "4.12"
-  val scalatest = "org.scalatest" %% "scalatest" % "2.2.6"
+  val scalatest = "org.scalatest" %% "scalatest" % "3.0.1"
   val dockerTestkit = "com.whisk" %% "docker-testkit-scalatest" % "0.9.0-RC3"
   val dockerTestkitSpotify = "com.whisk" %% "docker-testkit-impl-spotify" % "0.9.0-RC3"
 

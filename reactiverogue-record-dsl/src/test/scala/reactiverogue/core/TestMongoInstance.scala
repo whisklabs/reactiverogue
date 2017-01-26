@@ -2,10 +2,8 @@ package reactiverogue.core
 
 import com.whisk.docker.scalatest.DockerTestKit
 import org.scalatest.Suite
-import reactivemongo.api.{DefaultDB, MongoConnection, MongoDriver}
-
-import scala.concurrent.Await
-import scala.concurrent.duration._
+import reactivemongo.api.{MongoConnection, MongoDriver}
+import reactiverogue.db.MongoResolution
 
 trait TestMongoInstance extends DockerTestKit with DockerMongodbService { self: Suite =>
 
@@ -14,18 +12,16 @@ trait TestMongoInstance extends DockerTestKit with DockerMongodbService { self: 
 
   def mongoUri = s"mongodb://$mongodbHost:$mongodbPort/test"
 
-  protected implicit var mongodb: DefaultDB = _
+  protected implicit var mongores: MongoResolution = _
 
   override def beforeAll(): Unit = {
     super.beforeAll()
     val driver = new MongoDriver
     val uri = MongoConnection.parseURI(mongoUri).get
-    mongodb = Await.result(
-      driver.connection(MongoConnection.parseURI(mongoUri).get).database(uri.db.getOrElse("test")),
-      15.seconds)
+    mongores = MongoResolution(driver.connection(MongoConnection.parseURI(mongoUri).get), uri.db.getOrElse("test"))
   }
 
   override def afterAll(): Unit = {
-    mongodb.connection.close()
+    mongores.conn.close()
   }
 }

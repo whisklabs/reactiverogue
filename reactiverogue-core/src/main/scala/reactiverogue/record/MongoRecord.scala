@@ -1,7 +1,7 @@
 package reactiverogue.record
 
-import reactivemongo.api.DefaultDB
 import reactivemongo.api.commands.{WriteConcern, WriteResult}
+import reactiverogue.db.MongoResolution
 import reactiverogue.record.field.ObjectIdPk
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -19,7 +19,7 @@ trait MongoRecord[MyType <: MongoRecord[MyType]]
     * Save the instance and return the instance
     */
   def save(concern: WriteConcern)(implicit ec: ExecutionContext,
-                                  db: DefaultDB): Future[WriteResult] = {
+                                  res: MongoResolution): Future[WriteResult] = {
     meta.save(this, concern)
   }
 
@@ -28,12 +28,12 @@ trait MongoRecord[MyType <: MongoRecord[MyType]]
     * WILL NOT RAISE MONGO SERVER ERRORS.
     * Use save(Boolean) or save(GetLastError) to control error behavior
     */
-  def save(implicit ec: ExecutionContext, db: DefaultDB): Future[WriteResult] =
+  def save(implicit ec: ExecutionContext, res: MongoResolution): Future[WriteResult] =
     save(WriteConcern.Default)
 
   /**
     * Delete the instance from backing store
     */
-  def delete_!(implicit ec: ExecutionContext, db: DefaultDB): Future[WriteResult] =
+  def delete_!(implicit ec: ExecutionContext, res: MongoResolution): Future[WriteResult] =
     meta.delete_!(this)
 }
