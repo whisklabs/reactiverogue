@@ -78,9 +78,10 @@ trait QueryExecutor[MB] extends Rogue {
     }
   }
 
-  def fetch[M <: MB, R, State](query: Query[M, R, State])(implicit ev: ShardingOk[M, State],
-                                                          ec: ExecutionContext,
-                                                          res: MongoResolution): Future[List[R]] = {
+  def fetch[M <: MB, R, State](query: Query[M, R, State])(
+      implicit ev: ShardingOk[M, State],
+      ec: ExecutionContext,
+      res: MongoResolution): Future[List[R]] = {
     if (optimizer.isEmptyQuery(query)) {
       Future.successful(Nil)
     } else {

@@ -26,7 +26,9 @@ class ReactiveMongoAdapter[MB] {
               updated = 0,
               updatedExisting = false)
 
-  private def queryCollection(query: Query[_, _, _])(implicit res: MongoResolution, ec: ExecutionContext): Future[BSONCollection] = {
+  private def queryCollection(query: Query[_, _, _])(
+      implicit res: MongoResolution,
+      ec: ExecutionContext): Future[BSONCollection] = {
     res.database.map(_.apply(query.collectionName))
   }
 
@@ -57,9 +59,9 @@ class ReactiveMongoAdapter[MB] {
     val description: String = buildConditionString("count", query.collectionName, queryClause)
 
     runCommand(description, queryClause) {
-      queryCollection(query)flatMap(_.count(selector = Some(condition),
-                                   limit = query.lim.getOrElse(0),
-                                   skip = query.sk.getOrElse(0)))
+      queryCollection(query) flatMap (_.count(selector = Some(condition),
+                                              limit = query.lim.getOrElse(0),
+                                              skip = query.sk.getOrElse(0)))
     }
   }
 
@@ -152,8 +154,9 @@ class ReactiveMongoAdapter[MB] {
   def findAndModify[M <: MB, R](mod: FindAndModifyQuery[M, R],
                                 returnNew: Boolean,
                                 upsert: Boolean,
-                                remove: Boolean)(
-      f: BSONDocument => R)(implicit ec: ExecutionContext, res: MongoResolution): Future[Option[R]] = {
+                                remove: Boolean)(f: BSONDocument => R)(
+      implicit ec: ExecutionContext,
+      res: MongoResolution): Future[Option[R]] = {
     val modClause = transformer.transformFindAndModify(mod)
     validator.validateFindAndModify(modClause)
     if (modClause.mod.clauses.nonEmpty || remove) {

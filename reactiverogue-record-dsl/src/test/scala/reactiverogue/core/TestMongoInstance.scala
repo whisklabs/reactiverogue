@@ -18,7 +18,8 @@ trait TestMongoInstance extends DockerTestKit with DockerMongodbService { self: 
     super.beforeAll()
     val driver = new MongoDriver
     val uri = MongoConnection.parseURI(mongoUri).get
-    mongores = MongoResolution(driver.connection(MongoConnection.parseURI(mongoUri).get), uri.db.getOrElse("test"))
+    mongores = MongoResolution(driver.connection(MongoConnection.parseURI(mongoUri).get),
+                               uri.db.getOrElse("test"))
   }
 
   override def afterAll(): Unit = {
