@@ -3,8 +3,8 @@ import dependencies._
 lazy val commonSettings = Seq(
   organization := "com.whisk",
   scalaVersion := "2.11.8",
-  crossScalaVersions := Seq("2.11.8", "2.10.5"),
-  version := "0.4.0.beta14",
+  crossScalaVersions := Seq("2.11.8"),
+  version := "0.5.0.rc1",
   licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
   sonatypeProfileName := "com.whisk",
   pomExtra in Global := {
