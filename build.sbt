@@ -1,14 +1,10 @@
-val ReactivemongoVer = "0.12.1"
+val ReactivemongoVer = "0.15.0"
 
-val playVer = Def.setting[String] {
-  if (scalaVersion.value startsWith "2.11.") "2.5.12"
-  else "2.6.0-M3"
-}
+val playVer = "2.6.9"
 
 lazy val commonSettings = Seq(
   organization := "com.whisk",
-  scalaVersion := "2.11.8",
-  crossScalaVersions := Seq("2.11.8", "2.12.1"),
+  scalaVersion := "2.12.6",
   version := "0.5.0.rc2",
   licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
   sonatypeProfileName := "com.whisk",
@@ -54,8 +50,8 @@ lazy val core =
     .settings(libraryDependencies ++= Seq(
       "org.reactivemongo" %% "reactivemongo" % ReactivemongoVer,
       "org.reactivemongo" %% "reactivemongo-iteratees" % ReactivemongoVer,
-      "org.reactivemongo" %% "reactivemongo-play-json" % ReactivemongoVer,
-      "com.typesafe.play" %% "play-json" % playVer.value
+      "org.reactivemongo" %% "reactivemongo-play-json" % "0.15.0-play26",
+      "com.typesafe.play" %% "play-json" % playVer
     ))
 
 lazy val recordDsl =

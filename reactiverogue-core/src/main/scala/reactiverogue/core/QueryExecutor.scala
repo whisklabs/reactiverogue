@@ -1,9 +1,8 @@
 package reactiverogue.core
 
 import play.api.libs.iteratee.{Enumerator, Iteratee}
-import reactivemongo.api.commands.{DefaultWriteResult, WriteConcern, WriteResult}
+import reactivemongo.api.commands.{DefaultWriteResult, LastError, WriteConcern, WriteResult}
 import reactivemongo.bson.{BSONDocument, BSONDocumentReader}
-import reactivemongo.core.commands.LastError
 import reactivemongo.play.iteratees._
 import reactiverogue.core.MongoHelpers.{MongoModify, MongoSelect}
 import reactiverogue.db.MongoResolution
@@ -24,12 +23,17 @@ trait QueryExecutor[MB] extends Rogue {
 
   val EmptyResult =
     LastError(ok = true,
-              err = None,
+              errmsg = None,
               code = None,
-              errMsg = None,
-              originalDocument = None,
-              updated = 0,
-              updatedExisting = false)
+              lastOp = None,
+              n = 0,
+              singleShard = None,
+              updatedExisting = false,
+              upserted = None,
+              wnote = None,
+              wtimeout = false,
+              waited =None,
+              wtime = None)
 
   val EmptyWriteResult =
     DefaultWriteResult(ok = true,

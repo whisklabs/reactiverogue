@@ -2,7 +2,7 @@ package reactiverogue.core
 
 import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.api.commands.bson.BSONFindAndModifyCommand
-import reactivemongo.api.commands.{DefaultWriteResult, WriteConcern, WriteResult}
+import reactivemongo.api.commands.{DefaultWriteResult, LastError, WriteConcern, WriteResult}
 import reactivemongo.bson._
 import reactivemongo.api._
 import reactivemongo.core.commands._
@@ -19,12 +19,17 @@ class ReactiveMongoAdapter[MB] {
 
   val EmptyResult =
     LastError(ok = true,
-              err = None,
-              code = None,
-              errMsg = None,
-              originalDocument = None,
-              updated = 0,
-              updatedExisting = false)
+      errmsg = None,
+      code = None,
+      lastOp = None,
+      n = 0,
+      singleShard = None,
+      updatedExisting = false,
+      upserted = None,
+      wnote = None,
+      wtimeout = false,
+      waited =None,
+      wtime = None)
 
   private def queryCollection(query: Query[_, _, _])(
       implicit res: MongoResolution,
