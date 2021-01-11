@@ -1,4 +1,4 @@
-val ReactivemongoVer = "0.15.0"
+val ReactivemongoVer = "0.20.13"
 
 val playVer = "2.6.9"
 
@@ -50,7 +50,7 @@ lazy val core =
     .settings(libraryDependencies ++= Seq(
       "org.reactivemongo" %% "reactivemongo" % ReactivemongoVer,
       "org.reactivemongo" %% "reactivemongo-iteratees" % ReactivemongoVer,
-      "org.reactivemongo" %% "reactivemongo-play-json" % "0.15.0-play26",
+      "org.reactivemongo" %% "reactivemongo-play-json" % "0.20.13-play26",
       "com.typesafe.play" %% "play-json" % playVer
     ))
 
