@@ -7,7 +7,9 @@ lazy val commonSettings = Seq(
   scalaVersion := "2.12.6",
   version := "0.5.0.rc2",
   licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
-  sonatypeProfileName := "com.whisk",
+  publishMavenStyle := true,
+  credentials += Credentials(Path.userHome / ".m2" / ".credentials"),
+  publishTo := Some("internal.repo" at "https://mymavenrepo.com/repo/y2J1NBZ7K79ReLGgRL3s/"),
   pomExtra in Global := {
     <url>https://github.com/whisklabs/docker-it-scala</url>
       <scm>
