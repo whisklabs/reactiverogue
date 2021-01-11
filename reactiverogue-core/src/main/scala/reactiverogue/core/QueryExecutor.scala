@@ -1,6 +1,7 @@
 package reactiverogue.core
 
 import play.api.libs.iteratee.{Enumerator, Iteratee}
+import reactivemongo.api.Cursor
 import reactivemongo.api.commands.{DefaultWriteResult, LastError, WriteConcern, WriteResult}
 import reactivemongo.bson.{BSONDocument, BSONDocumentReader}
 import reactivemongo.play.iteratees._
@@ -91,10 +92,8 @@ trait QueryExecutor[MB] extends Rogue {
     } else {
       implicit val s = serializer[M, R](query.meta, query.select)
       adapter.cursor(query, None).flatMap { cursor =>
-        query.lim match {
-          case Some(limit) => cursor.collect[List](limit)
-          case None => cursor.collect[List]()
-        }
+        val maxDocs = query.lim.getOrElse(-1)
+        cursor.collect[List](maxDocs, Cursor.FailOnError[List[R]]())
       }
     }
   }
@@ -110,7 +109,7 @@ trait QueryExecutor[MB] extends Rogue {
 
       Enumerator.flatten {
         adapter.cursor(query, None).map { _cursor =>
-          val cursor = cursorProducer.produce(_cursor)
+          val cursor = new PlayIterateesCursorImpl(_cursor)
           query.lim match {
             case Some(limit) => cursor.enumerator(maxDocs = limit)
             case None => cursor.enumerator()
